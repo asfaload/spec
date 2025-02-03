@@ -97,6 +97,23 @@ For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWy
 That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature`
 in a file named to the base64 encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
 
+## Revocation
+
+If a file published and signed appears to be malicious, the publishing project can revoke the signatures.
+The revocation has to be signed according to the same conditions as a new release, i.e. respecting the file `asfaload.signers.json` of the project
+(not the copy that was taken in the release directory at the time of the release. A revocation has to be done by current signers).
+
+The revocation can be initiated by one of the signers. Revocation is done by setting the top field `revoked` in the file `asfaload.index.json` to `true`.
+The file is updated and saved as `asfaload.index.json.pending` under the release directory and signatures are collected in the directory `signatures.pending`.
+Once required signatures have been collected, the current `asfaload.index.json` and `signatures` are deleted and pending file and directory are renamed to
+drop the `.pending` suffix, making it the current version.
+
+> [!NOTE]
+> The process is the same as signing a new release.
+
+The revocation process always looks at the current signers. This means that if the file `asfaload.signers.json` is updated while a revocation is pending,
+the signature requirements will change during the revocation process.
+
 # Downloading a file
 
 1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
