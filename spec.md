@@ -46,10 +46,14 @@ Each signer provides its signature, and it is immediately committed to the mirro
 When all required signatures are collected, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
+# Mirror
+
 ## Signers modifications
 
-The file `asfaload.signers.json` is updated in the root of the project's repo and asfaload is notified of the change.
-The new file is copied with the suffix `.pending` added and a directory `signatures.pending` is created.
+A new version of the file `asfaload.signers.json` is sent to our backend, signed by one of the current signers.
+The new file is copied with the suffix `.pending` added and a directory `signatures.pending` is created to the repo's
+root directory on the mirror.
+
 To transition to the new setup, 3 conditions have to be met:
 * The current signatories need to sign the new signers file according to the current signers file.
 * The new signers file needs to be respected too.
@@ -73,16 +77,16 @@ new: { threshold 2, signers [ A, B, C, D]}
 This leads to these conditions having to be met:
 * 3 signatures from A B C D
 * 2 signatures from A B C D, which is covered by the first condition
-* new new signer is added, so no additional signature is required
+* no new signer is added, so no additional signature is required
 
-To be noted is that the initial signers file process is a special case of these conditions, where there is no
-current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
+> [!NOTE]
+> The initial signers file process is a special case of these conditions, where there is no
+> current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
 While collecting signatures, the new signatures are added under `signatures.pending` and committed to the mirror.
 As soon as the 3 conditions are met, the file and directory are renamed, dropping the `.pending` suffix, and replacing the previous signers files
 (which can still be found by looking at the git history if needed).
 
-# Mirror
 
 ## New release
 
