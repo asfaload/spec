@@ -100,11 +100,11 @@ in a file named to the base64 encoding of the public key used: `signatures/UldUc
 # Downloading a file
 
 1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
-2. The downloader initialises its valid signature cound to 0.
+2. The downloader initialises its valid signature count to 0.
 3. The downloader downloads the file `asfaload.index.json`.
 4. It extracts the threshold from the file and iterates over the authorised signers.
 5. For each signer, it extracts the public key, and computes its base64 encoding (let's call it key64).
-6. It looks under the file's directory on the mirror if it find the signature file for that public key.
+6. It looks under the file's directory on the mirror if it finds the signature file for that public key.
 To do that it looks for a file with the name `$key64` under the directory `signatures`.
 7. If the signature file is found, it downloads it.
 8. As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature. If the signature is valid, it increases its valid signatures count by 1.
