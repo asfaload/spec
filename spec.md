@@ -22,7 +22,17 @@ It is the file `asfaload.index.json` that will be signed by publishers.
 ## Initial signers
 
 ### Github
-Added in root of git repo as `asfaload.signers.json` with the format
+Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror.
+This is done by adding a file `asfaload.signers.json` of the git repo under the branch name `join_asfaload`. Once the file has been copied
+to the mirror, the branch can be deleted and all further processing will happen on the mirror.
+> [!NOTE]
+> Using a dedicated branch that can be deleted avoids to clutter the work
+> branch of the repo, and have signers in the repo out of sync with the mirror
+> when signers are updated.
+> The downside is that once the branch is deleted, there's no trace left. We
+> don't expect this to be problematic, looking at how Let's Encrypt has been
+> successful with the same approach.
+
 ```
 {
   "version": 1,
