@@ -126,6 +126,10 @@ drop the `.pending` suffix, making it the current version.
 The revocation process always looks at the current signers. This means that if the file `asfaload.signers.json` is updated while a revocation is pending,
 the signature requirements will change during the revocation process.
 
+## Key compromise
+
+A key compromise is the event making the private key of a signer available to a third-party not supposed to have it.
+
 # Downloading a file
 
 1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
