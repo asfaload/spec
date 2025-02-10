@@ -92,10 +92,12 @@ As soon as the 3 conditions are met, the file and directory are renamed, droppin
 
 The checksums files are mirrored and the `asfaload.index.json` file is created. The current `asfaload.signers.json` file is also copied
 under the release directory on the mirror.
-Signatures are requested according to the signers file on the mirror.
+Signatures are requested according to the signers file just copied to the release directory on the mirror.
 For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3` is signing the release.
-That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature`
+That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature.pending`
 in a file named to the base64 encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
+When required signatures are collected, the directory `signature.pending` is renamed to `signatures`.
+
 
 ## Revocation
 
