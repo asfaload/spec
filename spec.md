@@ -126,6 +126,63 @@ drop the `.pending` suffix, making it the current version.
 The revocation process always looks at the current signers. This means that if the file `asfaload.signers.json` is updated while a revocation is pending,
 the signature requirements will change during the revocation process.
 
+## Multi-sig analysis
+### Key compromise
+
+A key compromise is the event making the private key of a signer available to a third-party not supposed to have it.
+If not handled correctly, such an event can be catastrophic and lead to publication and seemingly valid signing of malicious software.
+Handling it correctly however is hard and may require some constraints.
+Multi-signatures accounts can limit the impact of a key compromise, but only under certain circumstances. For example, a 1-of-2 account does not
+bring any protection against key compromise, as the compromised key can take any action, including updating the signers.
+As a conclusion, we can say that to protect against key-compromise, the multi-sig needs to require more than one signature (in n-of-m, n>1).
+Also, per definition, an n-of-m multi-sig with m>n can protect against n-1 key compromise. (Compromised keys alone cannot validly sign, and
+the participation of at least one non-compromised key is needed).
+Of note is that the compromised key can still be used by its owner to sign multi-sig operations as long as it has not been revoked.
+This means that the compromised key can sill participate in the n-of-m multi-sig to validate signers updates.
+
+> [!NOTE]
+> An n-of-m account can protect against the compromise n-1 keys.
+### Key loss
+
+A key loss event is quiet similar to a key compromise, with the difference that the key cannot sign anything.
+If in the case of a key-compromise, said key can still participate to sign updates to the signers list, this is not the
+case with a key loss.
+It means that remaining signers should be able to sign changes.
+As a conclusion, to protect against a key loss, we need to have n<m.
+For a 3-of-5 account, we require the signature of 3 keys out of 5, meaning it can handle 2 key losses.
+We can generalise this and say that an account n-of-m protects against m-n key losses.
+> [!NOTE]
+> An n-of-m account can protect against m-n key losses.
+
+### Key compromises and key losses
+
+For an n-of-m account, the worst situation is to have n-1 key compromised, and m-n other keys lost.
+In that case, updates to the signers list can be signed by the n-1 owners of the compromised keys.
+With m-n keys lost, it still means that n keys are available. n-1 of these are compromised, but it means that
+on key is still safe and will be able to limit updates to the signers list to legitimate updates.
+
+At the other end of the spectrum, if all lost keys are amongst the compromised keys, we are still safe.
+We have n-1 keys compromised, and m-n keys lost.
+If m-n>n-1, it means we have lost access to all compromised keys in addition
+to some non-compromised keys. All accessible keys remaining are not compromised and can be safely used to
+update the signers list.
+We can illustrate this with a 3-of-8. Let's say we have the keys labeled `A` `B` `C` `D` `E` `F` `G` `H`.
+We have 3-1 = 2 compromised keys (let's say A B, which we mark with *), and 8-3 = 5 keys lost (which we mark with x), of which 2 are compromised:
+`Ax*` `Bx*` `C*` `D*` `E*` `F` `G` `H`
+
+If m-n < n-1, it means we have lost less keys than the number of compromised keys.
+For example, in a 3-of-4, we have 3-1 = 2 (compromises handled), and 4-3=1 (key loss handled).
+Let's say we have the 4 keys labels `A`, `B`, `C`, and `D` and `A` and `B` are compromised (we mark them with a `*`). As
+stated earlier, in this case all keys lost are amongst the compromised keys. So let's say `A` is lost (we mark it with `x`)
+We end up with these keys: `Ax*` `B*` `C` `D`. We see we have keys `B*` `C` `D` available to generate a valid signature, and we need to
+use a compromised key to sign the signers update.
+We can generalise and say that when m-n < n-1 we will need to use compromised keys to update the signers list. But as the update still requires the signature of a non-compromised key,
+the update is safe.
+
+Multi-sig accounts protect against any combination between these two extremes.
+
+
+
 # Downloading a file
 
 1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
