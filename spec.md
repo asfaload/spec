@@ -23,32 +23,66 @@ It is the file `asfaload.index.json` that will be signed by publishers.
 
 ### Github
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror.
-This is done by adding a file `asfaload.signers.json` of the git repo under the branch name `join_asfaload`. Once the file has been copied
-to the mirror, the branch can be deleted and all further processing will happen on the mirror.
-> [!NOTE]
-> Using a dedicated branch that can be deleted avoids to clutter the work
-> branch of the repo, and have signers in the repo out of sync with the mirror
-> when signers are updated.
-> The downside is that once the branch is deleted, there's no trace left. We
-> don't expect this to be problematic, looking at how Let's Encrypt has been
-> successful with the same approach.
+This is done by adding a file `asfaload.initial_signers.json` of the git repo under the `main` or `master` branch.
+This file will be copied to the Asfaload mirror in the root directory of the project under the name `asfaload.signers.json`.
+Once the file has been copied, it can be deleted by a new commit, but it MUST be left as is in the git history. This is needed to allow
+the validation of the chain of updates to the signers file.
 
 ```
 {
   "version": 1,
-  "threshold": {
-   "signatures_required": 1,
-  },
-  "signers" : [
+  // We keep a trace of the first signers file published by the project.
+  "initial_version": {
+    // Permalin to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
+    "permalink": "https://raw.githubusercontent.com/asfaload/asfald/13e1a1cae656e8d4d04ec55fa33e802f560b6b5d/asfaload.initial_signers.json",
+    // At the time we collect the file, we trigger a copy to public mirrors
+    "mirrors" : [
+      "https://archive.is/Fezr4s"
+    ]
+  }
+  // ---------------------------------------------------------------------------------------------
+  // These are the artifact signers accepted
+  "artifact_signers" : [
     { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"  },
     { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"  },
     { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"  }
   ]
+  // Specify how many signatures are required for artifact signing
+  "artifact_threshold": {
+   "signatures_required": 2,
+  },
+  // ---------------------------------------------------------------------------------------------
+  // Master keys, use for reinitialisation of the `asfaload.signers.json` file.
+  "master_keys" : [
+    { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
+    { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
+    { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+  // Specify how many signatures are required for master key operations
+  "master_threshold": {
+   "signatures_required": 2,
+  },
+  // ---------------------------------------------------------------------------------------------
+  // Following is optional.
+  // Admin keys, are *optional*, but if present, are used for updates to the `asfaload.signers.json` file
+  "admin_keys" : [
+    { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
+    { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
+    { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+  // Specify how many signatures are required for admin operations
+  "admin_threshold": {
+   "signatures_required": 2,
+  },
+]
 }
 ```
 When asfaload copies this file to the mirror, it is not signed yet and has the suffix `.pending` added. Signatures will be collected on the mirror.
 Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.json` file and provide the signature to the
 Asfaload backend.
+It also creates a file `asfaload.signers.history.json` with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
+
+Master keys are usable only for reinitialising a signers file, and should be kept offline. They are single usage, meaning
+that when a signers file is reinitialised, the master keys signing the update cannot be present in the new file.
+Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
 
 The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64_of_pub_key}`.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
@@ -57,6 +91,36 @@ When all required signatures are collected, the file and directory are renamed b
 active signature configuration.
 
 # Mirror
+
+## Key operations
+
+### Master keys
+
+* Reinitialisation of `asfaload.signers.json`
+* Changes in master signers configuration
+
+Master keys are one-time use keys. Master keys signing the new `asfaload.signers.json` file cannot be present in it.
+
+### Admin keys
+
+If admin keys are defined, they are used for the following operations:
+
+* Changes to `asfaload.signers.json` admin and artifact signers config, including threshold.
+
+Admin keys can be used multiple times. They can also be used to sign artifacts, at the condition
+they are explicitly listed as artifact signers. An admin key not listed `asfaload.signers.json` artifact signer
+cannot sign artifact.
+
+If no admin key is configured, its role is implicitly taken over by the artifact signers keys.
+
+### Artifact Signer keys
+
+Those keys are used for:
+
+* artifact signing.
+
+If no admin keys are configured, the artifact signing config implicitly acts `asfaload.signers.json` admin config
+(keys and threshold).
 
 ## Signers modifications
 
@@ -94,8 +158,32 @@ This leads to these conditions having to be met:
 > current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
 While collecting signatures, the new signatures are added under `signatures.pending` and committed to the mirror.
-As soon as the 3 conditions are met, the file and directory are renamed, dropping the `.pending` suffix, and replacing the previous signers files
-(which can still be found by looking at the git history if needed).
+As soon as the 3 conditions are met, the current file (`asfaload.signers.json`)
+and directory (`signatures`) are added in the file `asfaload.signers.history.json` and deleted, and the pending file and directories are
+renamed dropping the `.pending` suffix, replacing the previous signers files.
+Previous signers can also be found by looking at the git history if needed.
+
+### Adding the previous signers and signatures to the history
+
+Here is how the format of an entry in the array stored in the file `asfaload.signers.history.json`:
+
+```
+  {
+    // ISO8601 formatted UTC date and time
+    "obsoleted_at": "2025-02-27T08:48:44Z"
+    "signers_file" : { ... content of signers file ....}
+    "signature" : [
+          // multiline strings cannot be stored as is in json, so we store the content
+          // of a signature file in an array of strings, one string per line
+          "base64_of_pubkey1" : [ ... lines of signature file ...],
+          "base64_of_pubkey2" : [ ... lines of signature file ...]
+      ]
+}
+```
+
+Such an entry is **appended** to the array in the file
+`asfaload.signers.history.json`, and the entries of the array are expected to
+be sorted chronologically.
 
 
 ## New release
@@ -181,7 +269,18 @@ the update is safe.
 
 Multi-sig accounts protect against any combination between these two extremes.
 
+### Signers security
+Ideally, with a `m-of-n` account, `m>1` and `n>m`. However we recognise that a solo developer working occasionally on a small project, handling multi-sig keys might be too big a burden.
+For other accounts, catastrophic events could lead to loss of more than `n-m` keys or the compromise of `n`.
 
+Even though the number of occurrence of these events should be small, we need to let publisher reset their signers files.
+That's why we include master key(s) in the `asfaload.signers.json`. Those keys
+are supposed to be stored safely offline, possibly printed on paper, and can only
+be used one time.
+Using master keys to sign a new `asfaload.signers.json` file bypass the normal procedure
+usually followed when updating the `asfaload.signers.json` file.
+
+FIXME: what about files already signed? Unpublish by the project. But when can we remove asfaload index files from our mirror? It's better to have a false positive preventing a legitimate download download, but we shouldn't allow for DoS attacks either. On the other hand, if we leave it there, we might end up by validating corrupted files (esp if we support mirrors)
 
 # Downloading a file
 
