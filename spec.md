@@ -196,7 +196,14 @@ That user signs the `asfaload.index.json` file, and puts its signature under the
 in a file named to the base64 encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
 When required signatures are collected, the directory `signature.pending` is renamed to `signatures`.
 
-
+```mermaid
+stateDiagram-v2
+    state completed? <<choice>>
+    [*] --> CollectSignatures
+    completed? --> Done: if completed
+    completed? --> CollectSignatures: if missing signature
+    CollectSignatures --> completed?: get signature
+```
 ## Revocation
 
 If a file published and signed appears to be malicious, the publishing project can revoke the signatures.
@@ -279,8 +286,6 @@ are supposed to be stored safely offline, possibly printed on paper, and can onl
 be used one time.
 Using master keys to sign a new `asfaload.signers.json` file bypass the normal procedure
 usually followed when updating the `asfaload.signers.json` file.
-
-FIXME: what about files already signed? Unpublish by the project. But when can we remove asfaload index files from our mirror? It's better to have a false positive preventing a legitimate download download, but we shouldn't allow for DoS attacks either. On the other hand, if we leave it there, we might end up by validating corrupted files (esp if we support mirrors)
 
 # Downloading a file
 
