@@ -21,6 +21,10 @@ It is the file `asfaload.index.json` that will be signed by publishers.
 
 ## Initial signers
 
+We start by only working with Github, but aim to support other publishing platforms, including self-hosted solutions.
+For Github, the initial signers file is published in the root of the code repository, which is distinct from releases location.
+That's why for every publication platforms, we define the root location, where the initial signers file can be found, and the
+releases location, where files to be downloaded can be found.
 ### Github
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror.
 This is done by adding a file `asfaload.initial_signers.json` of the git repo under the `main` or `master` branch.
@@ -87,7 +91,7 @@ Master keys are also distinct from artifact signers, i.e. an artifact key cannot
 The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64_of_pub_key}`.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately committed to the mirror.
-When all required signatures are collected, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
+When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
 # Mirror
@@ -96,6 +100,7 @@ active signature configuration.
 
 ### Master keys
 
+Master keys are used for:
 * Reinitialisation of `asfaload.signers.json`
 * Changes in master signers configuration
 
