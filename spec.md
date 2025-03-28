@@ -44,36 +44,46 @@ the validation of the chain of updates to the signers file.
     ]
   }
   // ---------------------------------------------------------------------------------------------
-  // These are the artifact signers accepted
+  // These are the artifact signers accepted and their required threshold
+  // Note this is an array and the threshold of each object in the array
+  // has to be met for the signature to be complete.
   "artifact_signers" : [
-    { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"  },
-    { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"  },
-    { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"  }
-  ]
-  // Specify how many signatures are required for artifact signing
-  "artifact_threshold": {
-   "signatures_required": 2,
-  },
+    {
+      "signers" : [
+        { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"  },
+        { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"  },
+        { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"  }
+      ],
+      // how many signatures are required to have
+      // this requirement fulfilled
+      "threshold": 2
+    }
+  ],
   // ---------------------------------------------------------------------------------------------
   // Master keys, use for reinitialisation of the `asfaload.signers.json` file.
   "master_keys" : [
-    { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
-    { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
-    { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
-  // Specify how many signatures are required for master key operations
-  "master_threshold": {
-   "signatures_required": 2,
-  },
+    {
+        "signers": [
+            { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
+            { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
+            { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+        ],
+        "threshold": 2
+    }
+  ],
   // ---------------------------------------------------------------------------------------------
   // Following is optional.
   // Admin keys, are *optional*, but if present, are used for updates to the `asfaload.signers.json` file
   "admin_keys" : [
-    { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
-    { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
-    { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
-  // Specify how many signatures are required for admin operations
-  "admin_threshold": {
-   "signatures_required": 2,
+    {
+        "signers": [
+            { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
+            { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
+            { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+        ],
+        "threshold": 2
+    }
+  ]
   },
 ]
 }
@@ -92,6 +102,12 @@ Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately committed to the mirror.
 When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
+
+Each signers/keys field in the json is an array of object. Each object list keys and a threshold.
+For a signature to be complete, the requirements of each object needs to be fulfilled.
+This was introduced to support requiring signatures from different groups (e.g. at least one signature from
+the dev group and one from the QA group.)
+
 
 # Mirror
 
