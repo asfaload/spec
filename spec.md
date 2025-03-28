@@ -148,6 +148,10 @@ A new version of the file `asfaload.signers.json` is sent to our backend, signed
 The new file is copied with the suffix `.pending` added and a directory `signatures.pending` is created to the repo's
 root directory on the mirror.
 
+If admin keys have been configured in the current signers file, only the admin keys are involved in signing off the
+update (though new signers need to sign too to confirm they control the public key).
+If no admin key was set up, the artifact signers need to validate the update.
+
 To transition to the new setup, 3 conditions have to be met:
 * The current signatories need to sign the new signers file according to the current signers file.
 * The new signers file needs to be respected too.
