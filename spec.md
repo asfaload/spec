@@ -39,9 +39,8 @@ the validation of the chain of updates to the signers file.
   "initial_version": {
     // Permalin to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
     "permalink": "https://raw.githubusercontent.com/asfaload/asfald/13e1a1cae656e8d4d04ec55fa33e802f560b6b5d/asfaload.initial_signers.json",
-    // At the time we collect the file, we trigger a copy to public mirrors
+    // If the file is copied to multiple locations, these can be listed here
     "mirrors" : [
-      "https://archive.is/Fezr4s"
     ]
   }
   // ---------------------------------------------------------------------------------------------
