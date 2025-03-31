@@ -96,6 +96,12 @@ It also creates a file `asfaload.signers.history.json` with the content `[]`. Wh
 Master keys are usable only for reinitialising a signers file, and should be kept offline. They are single usage, meaning
 that when a signers file is reinitialised, the master keys signing the update cannot be present in the new file.
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
+> [!WARNING]
+> If the threshold for a master keys section is more than 1, how do we enforce single use of a
+> master key as we don't know which of the awaiting signatures will be provided and which keys will
+> stay unused?
+> Enforcing expiration of all master keys at reinitialisation might be too much.
+
 
 The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64_of_pub_key}`.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
