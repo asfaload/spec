@@ -50,9 +50,9 @@ the validation of the chain of updates to the signers file.
   "artifact_signers" : [
     {
       "signers" : [
-        { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"  },
-        { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"  },
-        { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"  }
+        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"}  },
+        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"}  },
+        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"}  }
       ],
       // how many signatures are required to have
       // this requirement fulfilled
@@ -64,9 +64,9 @@ the validation of the chain of updates to the signers file.
   "master_keys" : [
     {
         "signers": [
-            { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
-            { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
-            { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
         ],
         "threshold": 2
     }
@@ -77,9 +77,9 @@ the validation of the chain of updates to the signers file.
   "admin_keys" : [
     {
         "signers": [
-            { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"},
-            { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"},
-            { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"},
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "kind": { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
         ],
         "threshold": 2
     }
@@ -109,7 +109,10 @@ Each signer provides its signature, and it is immediately committed to the mirro
 When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
-Each signers/keys field in the json is an array of object. Each object list keys and a threshold.
+Each signers/keys field in the json is an array of object. The field `kind` initially only can have the value `key`,
+but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
+Each object list keys and a threshold.
+
 For a signature to be complete, the requirements of each object needs to be fulfilled.
 This was introduced to support requiring signatures from different groups (e.g. at least one signature from
 the dev group and one from the QA group.)
