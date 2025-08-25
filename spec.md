@@ -103,7 +103,7 @@ Master keys are also distinct from artifact signers, i.e. an artifact key cannot
 > Enforcing expiration of all master keys at reinitialisation might be too much.
 
 
-The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64_of_pub_key}`.
+The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64urlnopad_of_pub_key}` (See [RFC4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5)).
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately committed to the mirror.
 When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
@@ -208,8 +208,8 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
     "signature" : [
           // multiline strings cannot be stored as is in json, so we store the content
           // of a signature file in an array of strings, one string per line
-          "base64_of_pubkey1" : [ ... lines of signature file ...],
-          "base64_of_pubkey2" : [ ... lines of signature file ...]
+          "base64urlnopad_of_pubkey1" : [ ... lines of signature file ...],
+          "base64urlnopad_of_pubkey2" : [ ... lines of signature file ...]
       ]
 }
 ```
@@ -226,7 +226,7 @@ under the release directory on the mirror.
 Signatures are requested according to the signers file just copied to the release directory on the mirror.
 For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3` is signing the release.
 That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature.pending`
-in a file named to the base64 encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
+in a file named to the unpadded base64url encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
 The same directories contains the file `index.json` which allows to retrieve the signature files currently stored stored in the directory. It basically
 lists the files stored in the directory to allow clients to retrieve in one request the list of all signatures currently collected. It has this format,
 and this content based on our example:
@@ -338,7 +338,7 @@ usually followed when updating the `asfaload.signers.json` file.
 2. The downloader initialises its valid signature count to 0.
 3. The downloader downloads the file `asfaload.index.json`.
 4. It extracts the threshold from the file and iterates over the authorised signers.
-5. For each signer, it extracts the public key, and computes its base64 encoding (let's call it key64).
+5. For each signer, it extracts the public key, and computes its unpadded base64url encoding (let's call it key64).
 6. It looks under the file's directory on the mirror if it finds the signature file for that public key.
 To do that it looks for a file with the name `$key64` under the directory `signatures`.
 7. If the signature file is found, it downloads it.
