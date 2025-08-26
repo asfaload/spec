@@ -227,7 +227,7 @@ Signatures are requested according to the signers file just copied to the releas
 For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3` is signing the release.
 That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature.pending`
 in a file named to the unpadded base64url encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
-The same directories contains the file `index.json` which allows to retrieve the signature files currently stored stored in the directory. It basically
+The same directory contains the file `index.json` which allows to retrieve the signature files currently stored stored in the directory. It basically
 lists the files stored in the directory to allow clients to retrieve in one request the list of all signatures currently collected. It has this format,
 and this content based on our example:
 
