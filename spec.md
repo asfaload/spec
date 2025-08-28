@@ -89,8 +89,6 @@ the validation of the chain of updates to the signers file.
         "threshold": 2
     }
   ]
-  },
-]
 }
 ```
 When asfaload copies this file to the mirror, it is not signed yet and has the suffix `.pending` added. Signatures will be collected on the mirror.
@@ -114,7 +112,7 @@ Each signer provides its signature, and it is immediately committed to the mirro
 When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
-Each signers/keys field in `asfaload.signers.json` is an array of object. The field `kind` initially only can have the value `key`,
+Each signers/keys field in `asfaload.signers.json` is an array of objects. The field `kind` initially only can have the value `key`,
 but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
 Each object list keys and a threshold.
 
@@ -143,7 +141,7 @@ If admin keys are defined, they are used for the following operations:
 
 Admin keys can be used multiple times. They can also be used to sign artifacts, at the condition
 they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers.json` artifact signer
-cannot sign artifact.
+cannot sign an artifact.
 
 If no admin key is configured, its role is implicitly taken over by the artifact signers keys.
 
@@ -325,16 +323,18 @@ usually followed when updating the `asfaload.signers.json` file.
 
 # Downloading a file
 
-1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
-2. The downloader initialises its valid signature count to 0.
-3. The downloader downloads the file `asfaload.index.json`.
-4. It extracts the threshold from the file and iterates over the authorised signers.
-5. For each signer, it extracts the public key, and computes its unpadded base64url encoding (let's call it key64url).
-6. It looks under the file's directory on the mirror if it finds the signature file for that public key.
-To do that it looks for a file with the name `$key64url` under the directory `signatures`.
-7. If the signature file is found, it downloads it.
-8. As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature. If the signature is valid, it increases its valid signatures count by 1.
-9. If the signature count is equal to the threshold, the signature is complete and we stop iterating over signers in `asfaload.signers.json`
-10. The file to be downloaded is now effectively downloaded
-11. Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
-12. The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
+* 1 The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
+* 3 The downloader downloads the file `asfaload.index.json`.
+* 4 The downloader downloads the file `asfaload.signatures.json`.
+* 5 For each group:
+  * 5a Extracts the threshold of the group  and iterate over the signers listed in the group.
+  * 5b The downloader initialises its valid signature count to 0.
+  * 5c For each signer, it extracts the public key, and looks for it in `asfaload.signatures.json`.
+  * 5d As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
+      * 5d.1 It computes the sha512 of the file `asfaload.index.json`
+      * 5d.2 If the signature is valid for the sha512 computer, it increases the group's valid signatures count by 1.
+  * 5e If the signature count is equal to the threshold, the signature is complete for this group and we stop iterating over signers in this group and go to the next group
+  * 5f If after going over the last signer of the group the signature count is lower than the threshold, stop here and report an incomplete signature.
+* 6 The file to be downloaded is now effectively downloaded
+* 7 Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
+* 8 The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
