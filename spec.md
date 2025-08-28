@@ -17,6 +17,11 @@ for a file, as well as its location on the publishing platform.
 
 It is the file `asfaload.index.json` that will be signed by publishers.
 
+# Signature of a file
+
+When we say a file is signed, we actually mean that its sha512 sum is signed. We don't pass the whole file content to the signing function,
+the sha512 of the file is first computed, and that value is passed to the signing function.
+
 # Publishing Repo
 
 ## Initial signers
