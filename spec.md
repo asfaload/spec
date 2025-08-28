@@ -98,14 +98,11 @@ Each user controlling a secret key corresponding to a public key listed will hav
 Asfaload backend.
 It also creates a file `asfaload.signers.history.json` with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
 
-Master keys are usable only for reinitialising a signers file, and should be kept offline. They are single usage, meaning
-that when a signers file is reinitialised, the master keys signing the update cannot be present in the new file.
+Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
+that when a signers file is reinitialised, the master keys signing the update should not be present in the new file. This cannot be
+enforced though (If the threshold for a master keys section is more than 1, how do we enforce single use of a master key as we don't know
+which of the awaiting signatures will be provided and which keys will stay unused?), and is a question of policy and good practice
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
-> [!WARNING]
-> If the threshold for a master keys section is more than 1, how do we enforce single use of a
-> master key as we don't know which of the awaiting signatures will be provided and which keys will
-> stay unused?
-> Enforcing expiration of all master keys at reinitialisation might be too much.
 
 
 The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64urlnopad_of_pub_key}` (See [RFC4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5)).
@@ -133,7 +130,7 @@ Master keys are used for:
 * Reinitialisation of `asfaload.signers.json`
 * Changes in master signers configuration
 
-Master keys are one-time use keys. Master keys signing the new `asfaload.signers.json` file cannot be present in it.
+Master keys are encouraged to be one-time use keys. Master keys signing the new `asfaload.signers.json` file should ideally not be present in it.
 
 ### Admin keys
 
