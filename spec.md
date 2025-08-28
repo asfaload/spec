@@ -42,7 +42,7 @@ the validation of the chain of updates to the signers file.
   "version": 1,
   // We keep a trace of the first signers file published by the project.
   "initial_version": {
-    // Permalin to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
+    // Permalink to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
     "permalink": "https://raw.githubusercontent.com/asfaload/asfald/13e1a1cae656e8d4d04ec55fa33e802f560b6b5d/asfaload.initial_signers.json",
     // If the file is copied to multiple locations, these can be listed here
     "mirrors" : [
@@ -142,7 +142,7 @@ If admin keys are defined, they are used for the following operations:
 * Changes to `asfaload.signers.json` admin and artifact signers config, including threshold.
 
 Admin keys can be used multiple times. They can also be used to sign artifacts, at the condition
-they are explicitly listed as artifact signers. An admin key not listed `asfaload.signers.json` artifact signer
+they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers.json` artifact signer
 cannot sign artifact.
 
 If no admin key is configured, its role is implicitly taken over by the artifact signers keys.
