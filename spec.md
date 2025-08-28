@@ -17,6 +17,11 @@ for a file, as well as its location on the publishing platform.
 
 It is the file `asfaload.index.json` that will be signed by publishers.
 
+# Signature of a file
+
+When we say a file is signed, we actually mean that its sha512 sum is signed. We don't pass the whole file content to the signing function,
+the sha512 of the file is first computed, and that value is passed to the signing function.
+
 # Publishing Repo
 
 ## Initial signers
@@ -37,7 +42,7 @@ the validation of the chain of updates to the signers file.
   "version": 1,
   // We keep a trace of the first signers file published by the project.
   "initial_version": {
-    // Permalin to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
+    // Permalink to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
     "permalink": "https://raw.githubusercontent.com/asfaload/asfald/13e1a1cae656e8d4d04ec55fa33e802f560b6b5d/asfaload.initial_signers.json",
     // If the file is copied to multiple locations, these can be listed here
     "mirrors" : [
@@ -84,8 +89,6 @@ the validation of the chain of updates to the signers file.
         "threshold": 2
     }
   ]
-  },
-]
 }
 ```
 When asfaload copies this file to the mirror, it is not signed yet and has the suffix `.pending` added. Signatures will be collected on the mirror.
@@ -93,23 +96,23 @@ Each user controlling a secret key corresponding to a public key listed will hav
 Asfaload backend.
 It also creates a file `asfaload.signers.history.json` with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
 
-Master keys are usable only for reinitialising a signers file, and should be kept offline. They are single usage, meaning
-that when a signers file is reinitialised, the master keys signing the update cannot be present in the new file.
+Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
+that when a signers file is reinitialised, the master keys signing the update should not be present in the new file. This cannot be
+enforced though (If the threshold for a master keys section is more than 1, how do we enforce single use of a master key as we don't know
+which of the awaiting signatures will be provided and which keys will stay unused?), and is a question of policy and good practice
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
-> [!WARNING]
-> If the threshold for a master keys section is more than 1, how do we enforce single use of a
-> master key as we don't know which of the awaiting signatures will be provided and which keys will
-> stay unused?
-> Enforcing expiration of all master keys at reinitialisation might be too much.
 
 
-The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64urlnopad_of_pub_key}` (See [RFC4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5)).
+The backend will place the signature files on the mirror under `${project_root}/asfaload.signatures.json.pending`.
+The content of `asfaload.signatures.json` (possibly with the `pending` suffix) is a json object where each key
+is the base64 encoding of the public key of the signer, and the associated
+value is the base64 encoding of the signature.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately committed to the mirror.
-When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
+When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
-Each signers/keys field in the json is an array of object. The field `kind` initially only can have the value `key`,
+Each signers/keys field in `asfaload.signers.json` is an array of objects. The field `kind` initially only can have the value `key`,
 but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
 Each object list keys and a threshold.
 
@@ -128,7 +131,7 @@ Master keys are used for:
 * Reinitialisation of `asfaload.signers.json`
 * Changes in master signers configuration
 
-Master keys are one-time use keys. Master keys signing the new `asfaload.signers.json` file cannot be present in it.
+Master keys are encouraged to be one-time use keys. Master keys signing the new `asfaload.signers.json` file should ideally not be present in it.
 
 ### Admin keys
 
@@ -137,8 +140,8 @@ If admin keys are defined, they are used for the following operations:
 * Changes to `asfaload.signers.json` admin and artifact signers config, including threshold.
 
 Admin keys can be used multiple times. They can also be used to sign artifacts, at the condition
-they are explicitly listed as artifact signers. An admin key not listed `asfaload.signers.json` artifact signer
-cannot sign artifact.
+they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers.json` artifact signer
+cannot sign an artifact.
 
 If no admin key is configured, its role is implicitly taken over by the artifact signers keys.
 
@@ -154,7 +157,7 @@ If no admin keys are configured, the artifact signing config implicitly acts `as
 ## Signers modifications
 
 A new version of the file `asfaload.signers.json` is sent to our backend, signed by one of the current signers.
-The new file is copied with the suffix `.pending` added and a directory `signatures.pending` is created to the repo's
+The new file is copied with the suffix `.pending` added and a file `asfaload.signatures.json.pending` is created in the repo's
 root directory on the mirror.
 
 If admin keys have been configured in the current signers file, only the admin keys are involved in signing off the
@@ -190,10 +193,10 @@ This leads to these conditions having to be met:
 > The initial signers file process is a special case of these conditions, where there is no
 > current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
-While collecting signatures, the new signatures are added under `signatures.pending` and committed to the mirror.
-As soon as the 3 conditions are met, the current file (`asfaload.signers.json`)
-and directory (`signatures`) are added in the file `asfaload.signers.history.json` and deleted, and the pending file and directories are
-renamed dropping the `.pending` suffix, replacing the previous signers files.
+While collecting signatures, the new signatures are added in `asfaload.signatures.json.pending` and committed to the mirror.
+As soon as the 3 conditions are met, the current files (`asfaload.signers.json` and `asfaload.signatures.json`)
+are added in the file `asfaload.signers.history.json` and deleted, and the pending files (`asfaload.signers.json.pending` and
+asfaload.signatures.json.pending`) are renamed dropping the `.pending` suffix, replacing the previous signers files.
 Previous signers can also be found by looking at the git history if needed.
 
 ### Adding the previous signers and signatures to the history
@@ -205,12 +208,7 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
     // ISO8601 formatted UTC date and time
     "obsoleted_at": "2025-02-27T08:48:44Z"
     "signers_file" : { ... content of signers file ....}
-    "signature" : [
-          // multiline strings cannot be stored as is in json, so we store the content
-          // of a signature file in an array of strings, one string per line
-          "base64urlnopad_of_pubkey1" : [ ... lines of signature file ...],
-          "base64urlnopad_of_pubkey2" : [ ... lines of signature file ...]
-      ]
+    "signatures" : { ... content of signatures file ...}
 }
 ```
 
@@ -225,21 +223,9 @@ The checksums files are mirrored and the `asfaload.index.json` file is created. 
 under the release directory on the mirror.
 Signatures are requested according to the signers file just copied to the release directory on the mirror.
 For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3` is signing the release.
-That user signs the `asfaload.index.json` file, and puts its signature under the release directory on the mirror in the subdirectory `signature.pending`
-in a file named to the unpadded base64url encoding of the public key used: `signatures/UldUc2JSTWhCZE95TDhoU1lvL1o0blJENk81T3ZyeWRqWFd5dmQ4VzdRT1RmdEJPS1NTbjNQSDMK`.
-The same directory contains the file `index.json` which allows to retrieve the signature files currently stored stored in the directory. It basically
-lists the files stored in the directory to allow clients to retrieve in one request the list of all signatures currently collected. It has this format,
-and this content based on our example:
-
-```
-{
-    "signatures" : [
-      "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"
-    ]
-}
-
-```
-When required signatures are collected, the directory `signature.pending` is renamed to `signatures`.
+That user signs the `asfaload.index.json` file (reminder: its hash), and puts its signature under the release directory on the mirror
+in the file `asfaload.signatures.json.pending`.
+When required signatures are collected, the file `asfaload.signatures.json.pending` is renamed to `asfaload.signatures.json`.
 
 ```mermaid
 stateDiagram-v2
@@ -256,8 +242,8 @@ The revocation has to be signed according to the same conditions as a new releas
 (not the copy that was taken in the release directory at the time of the release. A revocation has to be done by current signers).
 
 The revocation can be initiated by one of the signers. Revocation is done by setting the top field `revoked` in the file `asfaload.index.json` to `true`.
-The file is updated and saved as `asfaload.index.json.pending` under the release directory and signatures are collected in the directory `signatures.pending`.
-Once required signatures have been collected, the current `asfaload.index.json` and `signatures` are deleted and pending file and directory are renamed to
+The file is updated and saved as `asfaload.index.json.pending` under the release directory and signatures are collected in `asfaload.signatures.json.pending`.
+Once required signatures have been collected, the current `asfaload.index.json` and `asfaload.signatures.json` are deleted and pending files are renamed to
 drop the `.pending` suffix, making it the current version.
 
 > [!NOTE]
@@ -265,6 +251,9 @@ drop the `.pending` suffix, making it the current version.
 
 The revocation process always looks at the current signers. This means that if the file `asfaload.signers.json` is updated while a revocation is pending,
 the signature requirements will change during the revocation process.
+
+> [!NOTE]
+> Would removing the file `asfaload.signatures.json` have the same effect and be faster to implement?
 
 ## Multi-sig analysis
 ### Key compromise
@@ -334,16 +323,18 @@ usually followed when updating the `asfaload.signers.json` file.
 
 # Downloading a file
 
-1. The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
-2. The downloader initialises its valid signature count to 0.
-3. The downloader downloads the file `asfaload.index.json`.
-4. It extracts the threshold from the file and iterates over the authorised signers.
-5. For each signer, it extracts the public key, and computes its unpadded base64url encoding (let's call it key64url).
-6. It looks under the file's directory on the mirror if it finds the signature file for that public key.
-To do that it looks for a file with the name `$key64url` under the directory `signatures`.
-7. If the signature file is found, it downloads it.
-8. As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature. If the signature is valid, it increases its valid signatures count by 1.
-9. If the signature count is equal to the threshold, the signature is complete and we stop iterating over signers in `asfaload.signers.json`
-10. The file to be downloaded is now effectively downloaded
-11. Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
-12. The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
+* 1 The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
+* 3 The downloader downloads the file `asfaload.index.json`.
+* 4 The downloader downloads the file `asfaload.signatures.json`.
+* 5 For each group:
+  * 5a Extracts the threshold of the group  and iterate over the signers listed in the group.
+  * 5b The downloader initialises its valid signature count to 0.
+  * 5c For each signer, it extracts the public key, and looks for it in `asfaload.signatures.json`.
+  * 5d As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
+      * 5d.1 It computes the sha512 of the file `asfaload.index.json`
+      * 5d.2 If the signature is valid for the sha512 computer, it increases the group's valid signatures count by 1.
+  * 5e If the signature count is equal to the threshold, the signature is complete for this group and we stop iterating over signers in this group and go to the next group
+  * 5f If after going over the last signer of the group the signature count is lower than the threshold, stop here and report an incomplete signature.
+* 6 The file to be downloaded is now effectively downloaded
+* 7 Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
+* 8 The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
