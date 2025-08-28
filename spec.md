@@ -105,13 +105,15 @@ which of the awaiting signatures will be provided and which keys will stay unuse
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
 
 
-The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/${base64urlnopad_of_pub_key}` (See [RFC4648](https://datatracker.ietf.org/doc/html/rfc4648#section-5)).
+The backend will place the signature files on the mirror under `${project_root}/asfaload/signatures.pending/index.json`.
+The content of `index.json` is an array of objects where the fieldname is the base64 encoding of the public key of the signer, and the associated
+value is the base64 encoding of the signature.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately committed to the mirror.
 When all signers (as required for a new signers file) have provided their respective signature, the file and directory are renamed by the backend to remove the `.pending` suffix, effectively becoming the
 active signature configuration.
 
-Each signers/keys field in the json is an array of object. The field `kind` initially only can have the value `key`,
+Each signers/keys field in `asfaload.signers.json` is an array of object. The field `kind` initially only can have the value `key`,
 but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
 Each object list keys and a threshold.
 
@@ -207,12 +209,7 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
     // ISO8601 formatted UTC date and time
     "obsoleted_at": "2025-02-27T08:48:44Z"
     "signers_file" : { ... content of signers file ....}
-    "signature" : [
-          // multiline strings cannot be stored as is in json, so we store the content
-          // of a signature file in an array of strings, one string per line
-          "base64urlnopad_of_pubkey1" : [ ... lines of signature file ...],
-          "base64urlnopad_of_pubkey2" : [ ... lines of signature file ...]
-      ]
+    "signatures" : { ... content of signatures file ...}
 }
 ```
 
