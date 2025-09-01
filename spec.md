@@ -32,9 +32,9 @@ That's why for every publication platforms, we define the root location, where t
 releases location, where files to be downloaded can be found.
 ### Github
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror.
-This is done by adding a file `asfaload.initial_signers.json` of the git repo under the `main` or `master` branch.
-This file will be copied to the Asfaload mirror in the root directory of the project under the name `asfaload.signers.json`.
-Once the file has been copied, it can be deleted by a new commit, but it MUST be left as is in the git history. This is needed to allow
+This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under the `main` or `master` branch.
+This file will be copied to the Asfaload mirror in the root's  subdirectory `asfaload.signers.pending` of the project under the name `asfaload.signers.json.pending`.
+Once the file has been copied to the mirror, it can be deleted by a new commit, but it MUST be left as is in the git history. This is needed to allow
 the validation of the chain of updates to the signers file.
 
 ```
@@ -92,9 +92,9 @@ the validation of the chain of updates to the signers file.
 }
 ```
 When asfaload copies this file to the mirror, it is not signed yet and has the suffix `.pending` added. Signatures will be collected on the mirror.
-Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.json` file and provide the signature to the
+Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.json.pending` file and provide the signature to the
 Asfaload backend.
-It also creates a file `asfaload.signers.history.json` with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
+It also creates a file `asfaload.signers.history.json` in the root directory with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
 
 Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
 that when a signers file is reinitialised, the master keys signing the update should not be present in the new file. This cannot be
@@ -103,7 +103,7 @@ which of the awaiting signatures will be provided and which keys will stay unuse
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
 
 
-The backend will place the signature files on the mirror under `${project_root}/asfaload.signatures.json.pending`.
+The backend will place the signature files on the mirror under `${project_root}/asfaload.signers/asfaload.signatures.json.pending`.
 The content of `asfaload.signatures.json` (possibly with the `pending` suffix) is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
 value is the base64 encoding of the signature.
@@ -111,7 +111,20 @@ Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately added to the `asfaload.signatures.json.pending` file and committed to the mirror.
 New signatures can only be added to `asfaload.signatures.json.pending`, not to `asfaload.signatures.json`.
 When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the
-`.pending` suffix, effectively becoming the active signature configuration.
+`.pending` suffix. At that time, the new signers file is ready to be made active. If there is no existing signers file, the
+directory `asfaload.signers.pending` is renamed to `asfaload.signers`, making it active.
+If a signers file needs to be replaced, the signers file (`asfaload.signers/asfaload.signers.json`) and signatures file (`asfaload.signers/asfaload.signatures.json`)
+are appended to the file `asfaload.signers.history.json` by adding an object of this form to the json array in the history file:
+
+```
+{
+    deprecated_at: $timestamp
+    signers: $content of asfaload.signers.json to be replaced
+    signatures: $content of asfaload.signatures.json to be replaced.
+}
+```
+When the previous signers data has been added to the history file, the directory `asfaload.signers.pending` can be renamed to `asfaload.signers`
+to replace the previous version
 
 Each signers/keys field in `asfaload.signers.json` is an array of objects. The field `kind` initially only can have the value `key`,
 but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
