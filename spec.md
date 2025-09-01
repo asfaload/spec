@@ -108,9 +108,10 @@ The content of `asfaload.signatures.json` (possibly with the `pending` suffix) i
 is the base64 encoding of the public key of the signer, and the associated
 value is the base64 encoding of the signature.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
-Each signer provides its signature, and it is immediately committed to the mirror.
-When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the `.pending` suffix, effectively becoming the
-active signature configuration.
+Each signer provides its signature, and it is immediately added to the `asfaload.signatures.json.pending` file and committed to the mirror.
+New signatures can only be added to `asfaload.signatures.json.pending`, not to `asfaload.signatures.json`.
+When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the
+`.pending` suffix, effectively becoming the active signature configuration.
 
 Each signers/keys field in `asfaload.signers.json` is an array of objects. The field `kind` initially only can have the value `key`,
 but in the future could accept other values, for example such that the object itself can hold a group of signers with a threshold.
