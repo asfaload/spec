@@ -170,7 +170,7 @@ If no admin keys are configured, the artifact signing config implicitly acts `as
 ## Signers modifications
 
 A new version of the file `asfaload.signers.json` is sent to our backend, signed by one of the current signers.
-The new file is copied into the directory `asfaload.signers.pending`  and a file `asfaload.signatures.json.pending`
+The new file is copied to `asfaload.signers.pending/asfaload.signers.json`, and a file `asfaload.signatures.json.pending` is created
 in that same directory.
 
 If admin keys have been configured in the current signers file, only the admin keys are involved in signing off the
