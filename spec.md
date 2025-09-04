@@ -33,7 +33,7 @@ releases location, where files to be downloaded can be found.
 ### Github
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror.
 This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under the `main` or `master` branch.
-This file will be copied to the Asfaload mirror in the root's  subdirectory `asfaload.signers.pending` of the project under the name `asfaload.signers.json.pending`.
+This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `asfaload.signers.json`.
 Once the file has been copied to the mirror, it can be deleted by a new commit, but it MUST be left as is in the git history. This is needed to allow
 the validation of the chain of updates to the signers file.
 
@@ -91,9 +91,9 @@ the validation of the chain of updates to the signers file.
   ]
 }
 ```
-When asfaload copies this file to the mirror, it is not signed yet and has the suffix `.pending` added. Signatures will be collected on the mirror.
-Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.json.pending` file and provide the signature to the
-Asfaload backend.
+When asfaload copies this file to the mirror, it is not signed yet. Signatures will be collected on the mirror.
+Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.pending/asfaload.signers.json` file and provide the signature to the
+Asfaload backend. These signatures are collected in the file `asfaload.signers.pending/asfaload.signatures.json.pending`.
 It also creates a file `asfaload.signers.history.json` in the root directory with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
 
 Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
@@ -103,8 +103,7 @@ which of the awaiting signatures will be provided and which keys will stay unuse
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
 
 
-The backend will place the signature files on the mirror under `${project_root}/asfaload.signers/asfaload.signatures.json.pending`.
-The content of `asfaload.signatures.json` (possibly with the `pending` suffix) is a json object where each key
+The content of `asfaload.signers.pending/asfaload.signatures.json` is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
 value is the base64 encoding of the signature.
 Here `${project_root}` is the path `/github.com/${user}/${repo}` on the mirror.
@@ -171,8 +170,8 @@ If no admin keys are configured, the artifact signing config implicitly acts `as
 ## Signers modifications
 
 A new version of the file `asfaload.signers.json` is sent to our backend, signed by one of the current signers.
-The new file is copied with the suffix `.pending` added and a file `asfaload.signatures.json.pending` is created in the repo's
-root directory on the mirror.
+The new file is copied into the directory `asfaload.signers.pending`  and a file `asfaload.signatures.json.pending`
+in that same directory.
 
 If admin keys have been configured in the current signers file, only the admin keys are involved in signing off the
 update (though new signers need to sign too to confirm they control the public key).
@@ -208,9 +207,11 @@ This leads to these conditions having to be met:
 > current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
 While collecting signatures, the new signatures are added in `asfaload.signatures.json.pending` and committed to the mirror.
-As soon as the 3 conditions are met, the current files (`asfaload.signers.json` and `asfaload.signatures.json`)
-are added in the file `asfaload.signers.history.json` and deleted, and the pending files (`asfaload.signers.json.pending` and
-asfaload.signatures.json.pending`) are renamed dropping the `.pending` suffix, replacing the previous signers files.
+As soon as the 3 conditions are met, the file `asfaload.signers.pending/asfaload.signatures.pending` is renamed to
+`asfaload.signers.pending/asfaload.signatures.json`. That is, the signature is marked as complete.
+The next step is then to activate this new signers file. The current files (`asfaload.signers.json` and `asfaload.signatures.json`)
+are added in the file `asfaload.signers.history.json` and deleted, and the pending directory `asfaload.signers.pending` is renamed
+dropping the `.pending` suffix, effectively replacing the previous signers files.
 Previous signers can also be found by looking at the git history if needed.
 
 ### Adding the previous signers and signatures to the history
