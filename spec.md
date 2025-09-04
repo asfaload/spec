@@ -207,7 +207,7 @@ This leads to these conditions having to be met:
 > current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
 While collecting signatures, the new signatures are added in `asfaload.signatures.json.pending` and committed to the mirror.
-As soon as the 3 conditions are met, the file `asfaload.signers.pending/asfaload.signatures.pending` is renamed to
+As soon as the 3 conditions are met, the file `asfaload.signers.pending/asfaload.signatures.json.pending` is renamed to
 `asfaload.signers.pending/asfaload.signatures.json`. That is, the signature is marked as complete.
 The next step is then to activate this new signers file. The current files (`asfaload.signers.json` and `asfaload.signatures.json`)
 are added in the file `asfaload.signers.history.json` and deleted, and the pending directory `asfaload.signers.pending` is renamed
