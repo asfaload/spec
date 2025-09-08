@@ -164,7 +164,7 @@ Those keys are used for:
 
 * artifact signing.
 
-If no admin keys are configured, the artifact signing config implicitly acts `asfaload.signers.json` admin config
+If no admin keys are configured, the artifact signing config implicitly acts as admin config
 (keys and threshold).
 
 ## Signers modifications
