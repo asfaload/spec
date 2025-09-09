@@ -251,12 +251,12 @@ be sorted chronologically.
 ## New release
 
 The checksums files are mirrored and the `asfaload.index.json` file is created. The current `asfaload.signers/index.json` file is also copied
-under the release directory on the mirror.
+under the release directory on the mirror and names `asfaload.signers.json`, so that older release can still be verified when the signers file is updated.
 Signatures are requested according to the signers file just copied to the release directory on the mirror.
 For our example, let's assume that the key `RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3` is signing the release.
 That user signs the `asfaload.index.json` file (reminder: its hash), and puts its signature under the release directory on the mirror
-in the file `asfaload.signatures.json.pending`.
-When required signatures are collected, the file `asfaload.signatures.json.pending` is renamed to `asfaload.signatures.json`.
+in the file `asfaload.index.json.signatures.pending`.
+When required signatures are collected, the file `asfaload.index.json.signatures.pending` is renamed to `asfaload.index.json.signatures`.
 
 ```mermaid
 stateDiagram-v2
