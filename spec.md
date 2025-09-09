@@ -24,7 +24,7 @@ When we say a file is signed, we actually mean that its sha512 sum is signed. We
 the sha512 of the file is first computed, and that value is passed to the signing function.
 
 Any file can be signed by the Asfaload scheme.
-The signatures are collected in a file named identically to the signed file, but with the suffix `signatures.pending`.
+The signatures are collected in a file named identically to the signed file, but with the suffix `.signatures.pending`.
 The required signatures are defined in the first parent directory having a subdirectory named `asfaload.signers` containing the file
 `index.json`.
 
