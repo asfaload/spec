@@ -354,7 +354,7 @@ usually followed when updating the `asfaload.signers/index.json` file.
 
 # Downloading a file
 
-* 1 The downloader tool downloads the `asfaload.signers/index.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
+* 1 The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
 * 3 The downloader downloads the file `asfaload.index.json`.
 * 4 The downloader downloads the file `asfaload.index.json.signatures`.
 * 5 For each group:
