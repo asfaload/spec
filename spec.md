@@ -33,7 +33,7 @@ is the base64 encoding of the public key of the signer, and the associated
 value is the base64 encoding of the signature.
 Once the required signatures, as defined in the nearest `asfaload.signers/index.json` file, are collected, the `.pending` suffix is dropped and
 the complete signature is made available for use.
-New signatures can only be added to `index.json.signatures.pending`, not to `asfaload.signatures.json`.
+New signatures can only be added to `index.json.signatures.pending`, not to `index.json.signatures`.
 
 # Publishing Repo
 
@@ -106,7 +106,7 @@ the validation of the chain of updates to the signers file.
 ```
 When asfaload copies this file to the mirror, it is not signed yet. Signatures will be collected on the mirror.
 Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.pending/index.json` file and provide the signature to the
-Asfaload backend. These signatures are collected in the file `asfaload.signers.pending/asfaload.signatures.json.pending`.
+Asfaload backend. These signatures are collected in the file `asfaload.signers.pending/index.json.signatures.pending`.
 It also creates a file `asfaload.signers.history.json` in the root directory with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
 
 Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
