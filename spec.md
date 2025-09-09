@@ -222,7 +222,7 @@ This leads to these conditions having to be met:
 > The initial signers file process is a special case of these conditions, where there is no
 > current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
-While collecting signatures, the new signatures are added in `asfaload.signatures/index.json.pending` and committed to the mirror.
+While collecting signatures, the new signatures are added in `asfaload.signers.pending/index.json.signatures.pending` and committed to the mirror.
 As soon as the 3 conditions are met, the file `asfaload.signers.pending/index.json.signatures.pending` is renamed to
 `asfaload.signers.pending/index.json.signatures`. That is, the signature is marked as complete.
 The next step is then to activate this new signers file. The current files (`asfaload.signers/index.json` and `asfaload.signers/index.json.signatures`)
