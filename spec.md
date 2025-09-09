@@ -120,7 +120,7 @@ Master keys are also distinct from artifact signers, i.e. an artifact key cannot
 # Signing the signers file
 
 Before the initial signers file is made active, it has itself to be signed by all keys it mentions.
-As long as it is  not signed, the signers files is stored in `asfaload.signers.pending/index.json`.
+As long as it is  not signed, the signers file is stored in `asfaload.signers.pending/index.json`.
 For Github releases, the signers file will be stored in `${project_root}`, which is `/github.com/${user}/${repo}` on the mirror.
 Each signer provides its signature, and it is immediately added to the `asfaload.signers.pending/index.json.signatures.pending` file and committed to the mirror.
 When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the
