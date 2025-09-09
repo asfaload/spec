@@ -126,7 +126,7 @@ Each signer provides its signature, and it is immediately added to the `asfaload
 When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the
 `.pending` suffix. At that time, the new signers file is ready to be made active. If there is no existing signers file, the
 directory `asfaload.signers.pending` is renamed to `asfaload.signers`, making it active.
-If a signers file needs to be replaced, the signers file (`asfaload.signers/index.json`) and signatures file (`asfaload.signers/asfaload.signatures.json`)
+If a signers file needs to be replaced, the signers file (`asfaload.signers/index.json`) and signatures file (`asfaload.signers/index.json.signatures`)
 are appended to the file `asfaload.signers.history.json` (sibling of the directory `asfaload.signers`) by adding an object of this form to the json array in the history file:
 
 ```
