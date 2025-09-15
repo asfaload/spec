@@ -269,7 +269,7 @@ In that directory, the file `index.json` is the signers file that applies.
 If an `asfaload.signers` directory is not found, an aggregate signature cannot be constructed: individual signatures are rejected
 and no file with the suffix `.signatures.json.pending` is created.
 #### Signature collection rule
-When receiving an individual signature, check its author is member of the artifact_signers group. If it is, collect the signature, otherwise ignore it.
+When receiving an individual signature, check its author is member of the `artifact_signers` group. If it is, collect the signature, otherwise ignore it.
 #### Completeness rules
 An aggregate signature subject to artifact signing rules is complete if the requirements of the artifact signers group of signers file are met.
 This is the simplest and most straight-forward case, but also the most common.
