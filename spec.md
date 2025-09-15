@@ -273,10 +273,7 @@ If a file published and signed appears to be malicious, the publishing project c
 The revocation has to be signed according to the same conditions as a new release, i.e. respecting the file `asfaload.signers/index.json` of the project
 (not the copy that was taken in the release directory at the time of the release. A revocation has to be done by current signers).
 
-The revocation can be initiated by one of the signers. Revocation is done by setting the top field `revoked` in the file `asfaload.index.json` to `true`.
-The file is updated and saved as `asfaload.index.json.pending` under the release directory and signatures are collected in `asfaload.signatures.json.pending`.
-Once required signatures have been collected, the current `asfaload.index.json` and `asfaload.index.json.signatures.json` are deleted and pending files are renamed to
-drop the `.pending` suffix, making it the current version.
+TODO
 
 > [!NOTE]
 > The process is the same as signing a new release.
@@ -355,7 +352,7 @@ usually followed when updating the `asfaload.signers/index.json` file.
 
 # Downloading a file
 
-* 1 The downloader tool downloads the `asfaload.signers.json` file from the file's directory on the mirror, so it identifies the current signers on the mirror in the release directory.
+* 1 The downloader tool downloads the  file's signers file on the mirror (`asfaload.index.json.signers.json`), so it identifies the current signers on the mirror in the release directory.
 * 3 The downloader downloads the file `asfaload.index.json`.
 * 4 The downloader downloads the file `asfaload.index.json.signatures.json`.
 * 5 For each group:
