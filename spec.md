@@ -293,7 +293,7 @@ Signatures from signers who do not meet any of these criteria are ignored.
 #### Completeness rules
 To have the signature complete, and make the transition to the new setup, 3 conditions have to be met:
 * The current signers file has to be respected at the admin or master group level.
-* The new signers file needs to be respected too at the admin group level. If the master group is present it is not the one used to evaluate if this signers file requirements are met (master keys are only used for triggering an update, not to activate a new file).
+The new signers file's requirements must also be met at the admin group level. The `master_keys` group, if present, is not used for this evaluation; master keys are only for triggering an update, not for activating a new file.
 * Any new signer is required to sign, including new signatories in the new master group.
 
 Here are examples where we consider only the admin group:
