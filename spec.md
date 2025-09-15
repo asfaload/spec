@@ -29,9 +29,7 @@ As long as the aggregate signature is not complete, i.e. it is still missing ind
 Once complete, the file is renamed to drop the `.pending` suffix.
 
 The requirements to be met to have the aggregate signature considered as complete are defined in a so called signers file.
-Such a signers file is saved in a directory named `asfaload.signers` under the name `index.json`. The content of the `asfaload.signers` directory
-applies to all the `asfaload.signers` directory's siblings. In other words, visiting parent directories of a file, the required individual signatures are defined in the first parent directory having a
-subdirectory named `asfaload.signers` containing the file `index.json`.
+Such a signers file is saved in a directory named `asfaload.signers` under the name `index.json`. To find the applicable signers file for a given file, its parent directories are traversed upwards. The `index.json` within the first `asfaload.signers` subdirectory encountered defines the signature requirements.
 
 The content of pending signatures file is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
