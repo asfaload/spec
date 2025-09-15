@@ -257,8 +257,7 @@ the signature requirements will change during the revocation process.
 
 ## Aggregate signature completeness
 
-As signers files contain different groups with distinct purposes, we have to determine rules defining which signers groups apply.
-to which circumstances.
+As signers files contain different groups with distinct purposes, we have to determine rules defining which signers groups apply to which circumstances.
 
 If the file being signed is named `index.json` and is stored in a directory named `asfaload.signers.pending`, the signers signing rules apply.
 Otherwise, artifact signing rules apply.
