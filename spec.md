@@ -24,7 +24,7 @@ When we say a file is signed, we actually mean that its sha512 sum is signed. We
 the sha512 of the file is first computed, and that value is passed to the signing function.
 
 Any file can be signed by the Asfaload scheme.
-The individual signatures are collected in a file named identically to the signed file, but with the suffix `.signatures.json.pending`. These individual signatures build an aggregate signature, made up of all individual signatures collected.
+The individual signatures are collected in a file named identically to the signed file, but with the suffix `.signatures.json.pending`. These individual signatures build an aggregate signature.
 As long as the aggregate signature is not complete, i.e. it is still missing individual signatures, it has the suffix `.signatures.json.pending`.
 Once complete, the file is renamed to drop the `.pending` suffix.
 
