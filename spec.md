@@ -288,10 +288,11 @@ Individual signatures are collected and accumulated in the file `asfaload.signer
 If this is an **initialisation** of the signers file, all signers present in all groups have to sign the file.
 
 If this is an **update** of the signers file:
-* when we collect the signatures:
-  * if the signer is in the current signers file, collect it if it is in the admin or master group, otherwise continue
-  * if the signer is in the newly proposed signers file, collect it if it is a new signer not present in the current signers file, or if it is a signer in the admin group of the new signers file.
-  * if the signature has not been collected in previous steps, ignore it.
+* when we collect the signatures for an update, a signature is collected if the signer meets any of the following criteria:
+  * Is a member of the `admin_keys` or `master_keys` group in the **current** signers file.
+  * Is a **new signer** (present in the new signers file but not the current one).
+  * Is a member of the `admin_keys` group in the **new** signers file.
+Signatures from signers who do not meet any of these criteria are ignored.
 #### Completeness rules
 To have the signature complete, and make the transition to the new setup, 3 conditions have to be met:
 * The current signers file has to be respected at the admin or master group level.
