@@ -24,9 +24,14 @@ When we say a file is signed, we actually mean that its sha512 sum is signed. We
 the sha512 of the file is first computed, and that value is passed to the signing function.
 
 Any file can be signed by the Asfaload scheme.
-The signatures are collected in a file named identically to the signed file, but with the suffix `.signatures.json.pending`.
-The required signatures are defined in the first parent directory having a subdirectory named `asfaload.signers` containing the file
-`index.json`.
+The individual signatures are collected in a file named identically to the signed file, but with the suffix `.signatures.json.pending`. These individual signatures build an aggregate signature, made up of all individual signatures collected.
+As long as the aggregate signature is not complete, i.e. it is still missing individual signatures, it has the suffix `.signatures.json.pending`.
+Once complete, the file is renamed to drop the `.pending` suffix.
+
+The requirements to be met to have the aggregate signature considered as complete are defined in a so called signers file.
+Such a signers file is saved in a directory named `asfaload.signers` under the name `index.json`. The content of the `asfaload.signers` directory
+applies to all the `asfaload.signers` directory's siblings. In other words, visiting parent directories of a file, the required individual signatures are defined in the first parent directory having a
+subdirectory named `asfaload.signers` containing the file `index.json`.
 
 The content of pending signatures file is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
@@ -34,6 +39,7 @@ value is the base64 encoding of the signature.
 Once the required signatures, as defined in the nearest `asfaload.signers/index.json` file, are collected, the `.pending` suffix is dropped and
 the complete signature is made available for use.
 New signatures can only be added to `index.json.signatures.json.pending`, not to `index.json.signatures.json`.
+
 
 # Publishing Repo
 
@@ -92,6 +98,7 @@ the validation of the chain of updates to the signers file.
   // ---------------------------------------------------------------------------------------------
   // Following is optional.
   // Admin keys, are *optional*, but if present, are used for updates to the `index.json` file
+  // When admin keys are not explicitly defined, they are made implicitly equal to the artifact signers group.
   "admin_keys" : [
     {
         "signers": [
@@ -164,7 +171,7 @@ Master keys are encouraged to be one-time use keys. Master keys signing the new 
 
 ### Admin keys
 
-If admin keys are defined, they are used for the following operations:
+Admin keys are used for the following operations:
 
 * Changes to `asfaload.signers/index.json` admin and artifact signers config, including threshold.
 
@@ -172,7 +179,7 @@ Admin keys can be used multiple times. They can also be used to sign artifacts, 
 they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers/index.json` artifact signer
 cannot sign an artifact.
 
-If no admin key is configured, its role is implicitly taken over by the artifact signers keys.
+If no admin group is configured, it is equal to the artifact signers group.
 
 ### Artifact Signer keys
 
@@ -180,8 +187,6 @@ Those keys are used for:
 
 * artifact signing.
 
-If no admin keys are configured, the artifact signing config implicitly acts as admin config
-(keys and threshold).
 
 ## Signers modifications
 
@@ -189,41 +194,9 @@ A new version of the file `asfaload.signers/index.json` is sent to our backend, 
 The new file is copied to `asfaload.signers.pending/index.json`, and a file `index.json.signatures.json.pending` is created
 in that same directory.
 
-If admin keys have been configured in the current signers file, only the admin keys are involved in signing off the
-update (though new signers need to sign too to confirm they control the public key).
-If no admin key was set up, the artifact signers need to validate the update.
-
-To transition to the new setup, 3 conditions have to be met:
-* The current signatories need to sign the new signers file according to the current signers file.
-* The new signers file needs to be respected too.
-* Any new signer is required to sign.
-
-Example:
-old: { threshold 2, signers [ A, B, C ]}
-new: { threshold 3, signers [ A, B, C, D]}
-
-This leads to these condition having to be met before transitioning to the new signature config:
-* We need 2 signatures from A B C
-* We need 3 signatures from A B C D
-* We need signature D as it is a new signer.
-
-An acceptable set of signatures of A B D, as it fulfills all 3 conditions.
-
-Lowering the threshold example:
-old: { threshold 3, signers [ A, B, C, D]}
-new: { threshold 2, signers [ A, B, C, D]}
-
-This leads to these conditions having to be met:
-* 3 signatures from A B C D
-* 2 signatures from A B C D, which is covered by the first condition
-* no new signer is added, so no additional signature is required
-
-> [!NOTE]
-> The initial signers file process is a special case of these conditions, where there is no
-> current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
 
 While collecting signatures, the new signatures are added in `asfaload.signers.pending/index.json.signatures.json.pending` and committed to the mirror.
-As soon as the 3 conditions are met, the file `asfaload.signers.pending/index.json.signatures.json.pending` is renamed to
+As soon as the update is signed as required (see aggregate signatures completeness), the file `asfaload.signers.pending/index.json.signatures.json.pending` is renamed to
 `asfaload.signers.pending/index.json.signatures.json`. That is, the signature is marked as complete.
 The next step is then to activate this new signers file. The current files (`asfaload.signers/index.json` and `asfaload.signers/index.json.signatures.json`)
 are added in the file `asfaload.signers.history.json` and `asfaload.signers` is deleted, and the pending directory `asfaload.signers.pending` is renamed
@@ -283,6 +256,82 @@ the signature requirements will change during the revocation process.
 
 > [!NOTE]
 > Would removing the file `asfaload.index.json.signatures.json` have the same effect and be faster to implement?
+
+## Aggregate signature completeness
+
+As signers files contain different groups with distinct purposes, we have to determine rules defining which signers groups apply.
+to which circumstances.
+
+If the file being signed is named `index.json` and is stored in a directory named `asfaload.signers.pending`, the signers signing rules apply.
+Otherwise, artifact signing rules apply.
+
+### Artifact signing rules
+#### Signers file identification
+The signers file is found by recursively traversing parent directories from the file's location, until a directory named `asfaload.signers` is found.
+In that directory, the file `index.json` is the signers file that applies.
+If an `asfaload.signers` directory is not found, an aggregate signature cannot be constructed: individual signatures are rejected
+and no file with the suffix `.signatures.json.pending` is created.
+#### Signature collection rule
+When receiving an individual signature, check its author is member of the artifact_signers group. If it is, collect the signature, otherwise ignore it.
+#### Completeness rules
+An aggregate signature subject to artifact signing rules is complete if the requirements of the artifact signers group of signers file are met.
+This is the simplest and most straight-forward case, but also the most common.
+
+
+### Signers signing rules
+#### Signers file identification
+The signers file is looked for similarly as for the artifact signing rules.
+However, if no signers file can be found, we are in the initialisation phase of the signers file.
+Individual signatures are collected and accumulated in the file `asfaload.signers.pending/index.json.signatures.json.pending`.
+
+#### Signature collection rule
+If this is an **initialisation** of the signers file, all signers present in all groups have to sign the file.
+
+If this is an **update** of the signers file:
+* when we collect the signatures:
+  * if the signer is in the current signers file, collect it if it is in the admin or master group, otherwise continue
+  * if the signer is in the newly proposed signers file, collect it if it is a new signer not present in the current signers file, or if it is a signer in the admin group of the new signers file.
+  * if the signature has not been collected in previous steps, ignore it.
+#### Completeness rules
+To have the signature complete, and make the transition to the new setup, 3 conditions have to be met:
+* The current signers file has to be respected at the admin or master group level.
+* The new signers file needs to be respected too at the admin group level. If the master group is present it is not the one used to evaluate if this signers file requirements are met (master keys are only used for triggering an update, not to activate a new file).
+* Any new signer is required to sign, including new signatories in the new master group.
+
+Here are examples where we consider only the admin group:
+
+Example:
+old: { threshold 2, signers [ A, B, C ]}
+new: { threshold 3, signers [ A, B, C, D]}
+
+This leads to these condition having to be met before transitioning to the new signature config:
+* We need 2 signatures from A B C
+* We need 3 signatures from A B C D
+* We need signature D as it is a new signer.
+
+An acceptable set of signatures of A B D, as it fulfills all 3 conditions.
+
+Lowering the threshold example:
+old: { threshold 3, signers [ A, B, C, D]}
+new: { threshold 2, signers [ A, B, C, D]}
+
+This leads to these conditions having to be met:
+* 3 signatures from A B C D
+* 2 signatures from A B C D, which is covered by the first condition
+* no new signer is added, so no additional signature is required
+
+Changing signers:
+old: { threshold:3, signers A, B, C, D}
+new: {threshold: 4, signers A, E, F, G}
+This leads to these conditions having to be met:
+* 3 signatures from A B C D
+* 4 signatures from A E F G
+* require signatures from E F G, which is covered by previous condition
+
+> [!NOTE]
+> The initial signers file process is a special case of these conditions, where there is no
+> current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
+
 
 ## Multi-sig analysis
 ### Key compromise
