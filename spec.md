@@ -29,7 +29,13 @@ As long as the aggregate signature is not complete, i.e. it is still missing ind
 Once complete, the file is renamed to drop the `.pending` suffix.
 
 The requirements to be met to have the aggregate signature considered as complete are defined in a so called signers file.
-Such a signers file is saved in a directory named `asfaload.signers` under the name `index.json`. To find the applicable signers file for a given file, its parent directories are traversed upwards. The `index.json` within the first `asfaload.signers` subdirectory encountered defines the signature requirements.
+Such a signers file is saved in a directory named `asfaload.signers` under the name `index.json`. To find the applicable signers file for a given file,
+its parent directories are traversed upwards. The `index.json` within the first `asfaload.signers` subdirectory encountered defines the signature requirements.
+
+The applicable signers file is copied to a file named as the signed file but with the suffix `.signers.json` when the first signature is collected.
+We need to take a copy because between the time of the signature and the time of download and verification, an new signers file can be added in a ancestor
+dir of the signed file but descendant dir of the original signers file used. Although it would still be possible to locate the signers file applicable using
+the signers file's history kept, it would make it cumbersome.
 
 The content of pending signatures file is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
@@ -241,19 +247,66 @@ stateDiagram-v2
 ## Revocation
 
 If a file published and signed appears to be malicious, the publishing project can revoke the signatures.
-The revocation has to be signed according to the same conditions as a new release, i.e. respecting the file `asfaload.signers/index.json` of the project
-(not the copy that was taken in the release directory at the time of the release. A revocation has to be done by current signers).
+As revocation is in most cases an emergency intervention, only one signature from the most privileged group defined in the current signers file is required.
+The groups in order from the most privileged to the least are:
 
-TODO
+* master keys
+* admin keys
+* artifact signers
+
+The revocation process always looks at the current signers. This means that if the file `asfaload.signers/index.json` is updated since the file to be revoked was signed,
+the signers config used for revocation will not be the same as the one used at the time of the signing.
+
+This approach seems to strike the right balance between risking a Denial of Service if it is too easy to revoke a file, and keeping a file to be revoked available for too long.
+
+When a request for revocation of a signed file is received, it provides:
+
+* the path to the file being revoked
+* a json document specifying the revocation
+* the signature of the json document by the private key corresponding to the public key transmitted in the request
+
+The json document has this format (`//` commented lines are not part of the json document):
+
+```
+{
+  // ISO8601 formatted UTC date and time
+  "timestamp" :  "2025-02-27T08:48:44Z",
+  "subject_digest" : "sha256:......",
+  "initiator" : "pubkey_of_signer"
+}
+```
+
+When the revocation request is received, the revoked file is located thanks to the path information given in the request.
+First we validate if the signer is authorized to revoke a file. If it is, check the signature of the revocation json. If any of those are not
+accepted, stop here.
+
+Then it is checked if the file has a complete aggregate signature. If not, stop here (or prevent aggregate signature completion? see note below).
+If the file to be revoked has a complete aggregate signature, compute its digest and compare it to the value in the json document transmitted.
+If it doesn't match, stop here.
+
+If it matches, the revocation request is legitimate, and we apply it:
+
+* write the revocation json document to a file named `${revoked file name}.revocation.json`
+* write the signature of the revocation json document to a file named `${revoked file name}.revocation.signatures.json`
+* write the signers file active at the time of the revocation to a file named `${revoked file name}.revocation.signers.json`
+* move the revoked file's `.signatures.json` file to add the suffix `.revoked`.
+
+As these operations are not atomically applied, the client should check the presence and validity of a revocation, even if the aggregate signature
+`.signatures.json` file is still present and valid.
+
+The `.revocation.signature.json` file is structured like this:
+
+```
+{
+  signatures :[
+  { "PUBKEY" : "base64 signature"}
+]
+}
+```
+
 
 > [!NOTE]
-> The process is the same as signing a new release.
-
-The revocation process always looks at the current signers. This means that if the file `asfaload.signers/index.json` is updated while a revocation is pending,
-the signature requirements will change during the revocation process.
-
-> [!NOTE]
-> Would removing the file `asfaload.index.json.signatures.json` have the same effect and be faster to implement?
+> if we reveive a revocation for a file without a complete aggregate signature, do we want to prevent the aggregate signature to be completed in the future?
 
 ## Aggregate signature completeness
 
@@ -398,6 +451,19 @@ Using master keys to sign a new `asfaload.signers/index.json` file bypass the no
 usually followed when updating the `asfaload.signers/index.json` file.
 
 # Downloading a file
+
+FIXME: add the check of a revocation.
+
+* 0 The downloader tool first checks if the flie was revoked, and considers the file not revoked if any of these steps fails:
+  * download the `.revocation.json` file
+  * download the revocation file's signature
+  * get the signers file that was valid at the time of the revocation (`revocation.signatures.json`).
+  * validate the signer of the revocation had the right to revoke at the revocation time
+  * validate the signature and stop dwnloading if the signature is valid. Although this creates an opportunity to DoS the system,
+    we don't wait to check that the file we download has the same digest because:
+    * or it has the same digest of the revoked file, and we delete the downloaded file due to revocation
+    * or it has another digest, and seomthing strange is going on. We don't know if the revocation is buggy, or if the file we
+      downloaded was somehow injected in the system to replaced the revoked file.
 
 * 1 The downloader tool downloads the  file's signers file on the mirror (`asfaload.index.json.signers.json`), so it identifies the current signers on the mirror in the release directory.
 * 3 The downloader downloads the file `asfaload.index.json`.
