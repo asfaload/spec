@@ -112,7 +112,7 @@ the validation of the chain of updates to the signers file.
 When asfaload copies this file to the mirror, it is not signed yet. Signatures will be collected on the mirror.
 Each user controlling a secret key corresponding to a public key listed will have to sign the `asfaload.signers.pending/index.json` file and provide the signature to the
 Asfaload backend. These signatures are collected in the file `asfaload.signers.pending/index.json.signatures.json.pending`.
-It also creates a file `asfaload.signers.history.json` in the root directory with the content `[]`. When signers files are updated, the historical versions will be recorded in that file.
+It also creates a file `asfaload.signers.history.json` in the root directory with the content `{entries : []}`. When signers files are updated, the historical versions will be recorded in that file. Currently only the `entries` key is defined, but others might be added if needed.
 
 Master keys are usable only for reinitialising a signers file, and should be kept offline. They ideally should be  single usage, meaning
 that when a signers file is reinitialised, the master keys signing the update should not be present in the new file. This cannot be
@@ -132,7 +132,7 @@ When all signers (as required for a new signers file) have provided their respec
 `.pending` suffix. At that time, the new signers file is ready to be made active. If there is no existing signers file, the
 directory `asfaload.signers.pending` is renamed to `asfaload.signers`, making it active.
 If a signers file needs to be replaced, the signers file (`asfaload.signers/index.json`) and signatures file (`asfaload.signers/index.json.signatures.json`)
-are appended to the file `asfaload.signers.history.json` (sibling of the directory `asfaload.signers`) by adding an object of this form to the json array in the history file:
+are appended to the file `asfaload.signers.history.json` (sibling of the directory `asfaload.signers`) by adding an object of this form to the json array in the history file under the key `entries`:
 
 ```
 {
