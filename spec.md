@@ -448,7 +448,6 @@ usually followed when updating the `asfaload.signers/index.json` file.
 
 # Downloading a file
 
-FIXME: add the check of a revocation.
 
 * 0 The downloader tool first checks if the file was revoked, and considers the file not revoked if any of these steps fails:
   * download the `.revocation.json` file
