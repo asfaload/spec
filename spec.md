@@ -294,7 +294,7 @@ If it matches, the revocation request is legitimate, and we apply it:
 As these operations are not atomically applied, the client should check the presence and validity of a revocation, even if the aggregate signature
 `.signatures.json` file is still present and valid.
 
-The `.revocation.signature.json` file is structured like this:
+The `.revocation.signatures.json` file is structured like this:
 
 ```
 {
