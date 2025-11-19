@@ -277,7 +277,7 @@ The json document has this format (`//` commented lines are not part of the json
 ```
 
 When the revocation request is received, the revoked file is located thanks to the path information given in the request.
-First we validate if the signer is authorized to revoke a file. If it is, check the signature of the revocation json.
+First we check the signature of the revocation json. If it is valid, we then validate if the signer is authorized to revoke a file.
 If either of these checks fail, stop here.
 
 Then it is checked if the file has a complete aggregate signature. If not, stop here (or prevent aggregate signature completion? see note below).
