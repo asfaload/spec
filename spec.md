@@ -298,8 +298,8 @@ The `.revocation.signatures.json` file is structured like this:
 
 ```
 {
-  signatures :[
-  { "PUBKEY" : "base64 signature"}
+  "signatures" :[
+  { "<base64-encoded-pubkey>" : "base64 signature"}
 ]
 }
 ```
