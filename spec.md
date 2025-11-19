@@ -306,7 +306,7 @@ The `.revocation.signatures.json` file is structured like this:
 
 
 > [!NOTE]
-> if we reveive a revocation for a file without a complete aggregate signature, do we want to prevent the aggregate signature to be completed in the future?
+> if we receive a revocation for a file without a complete aggregate signature, do we want to prevent the aggregate signature to be completed in the future?
 
 ## Aggregate signature completeness
 
