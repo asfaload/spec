@@ -458,8 +458,8 @@ FIXME: add the check of a revocation.
   * download the `.revocation.json` file
   * download the revocation file's signature
   * get the signers file that was valid at the time of the revocation (`revocation.signers.json`).
-  * validate the signer of the revocation had the right to revoke at the revocation time
-  * validate the signature and stop downloading if the signature is valid. Although this creates an opportunity to DoS the system,
+  * validate the signature of the revocation document.
+  * validate that the signer had the right to revoke at the revocation time. If both checks pass, stop downloading. Although this creates an opportunity to DoS the system,
     we don't wait to check that the file we download has the same digest because:
     * or it has the same digest of the revoked file, and we delete the downloaded file due to revocation
     * or it has another digest, and something strange is going on. We don't know if the revocation is buggy, or if the file we
