@@ -33,9 +33,7 @@ Such a signers file is saved in a directory named `asfaload.signers` under the n
 its parent directories are traversed upwards. The `index.json` within the first `asfaload.signers` subdirectory encountered defines the signature requirements.
 
 The applicable signers file is copied to a file named as the signed file but with the suffix `.signers.json` when the first signature is collected.
-We need to take a copy because between the time of the signature and the time of download and verification, a new signers file can be added in an ancestor
-dir of the signed file but descendant dir of the original signers file used. Although locating the applicable signers file using its history would still be possible,
-it would be cumbersome.
+We need to take a copy because the applicable signers file could change between signing and verification. A new, more specific, signers file could be added in a path closer to the signed file, which would then be used for verification instead of the original. Although locating the applicable signers file using its history would still be possible, it would be cumbersome.
 
 The content of pending signatures file is a json object where each key
 is the base64 encoding of the public key of the signer, and the associated
