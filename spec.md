@@ -454,16 +454,16 @@ usually followed when updating the `asfaload.signers/index.json` file.
 
 FIXME: add the check of a revocation.
 
-* 0 The downloader tool first checks if the flie was revoked, and considers the file not revoked if any of these steps fails:
+* 0 The downloader tool first checks if the file was revoked, and considers the file not revoked if any of these steps fails:
   * download the `.revocation.json` file
   * download the revocation file's signature
-  * get the signers file that was valid at the time of the revocation (`revocation.signatures.json`).
+  * get the signers file that was valid at the time of the revocation (`revocation.signers.json`).
   * validate the signer of the revocation had the right to revoke at the revocation time
-  * validate the signature and stop dwnloading if the signature is valid. Although this creates an opportunity to DoS the system,
+  * validate the signature and stop downloading if the signature is valid. Although this creates an opportunity to DoS the system,
     we don't wait to check that the file we download has the same digest because:
     * or it has the same digest of the revoked file, and we delete the downloaded file due to revocation
-    * or it has another digest, and seomthing strange is going on. We don't know if the revocation is buggy, or if the file we
-      downloaded was somehow injected in the system to replaced the revoked file.
+    * or it has another digest, and something strange is going on. We don't know if the revocation is buggy, or if the file we
+      downloaded was somehow injected in the system to replace the revoked file.
 
 * 1 The downloader tool downloads the  file's signers file on the mirror (`asfaload.index.json.signers.json`), so it identifies the current signers on the mirror in the release directory.
 * 3 The downloader downloads the file `asfaload.index.json`.
