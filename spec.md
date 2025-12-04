@@ -285,14 +285,14 @@ If it doesn't match, stop here.
 If it matches, the revocation request is legitimate, and we apply it:
 
 * write the revocation json document to a file named `${revoked file name}.revocation.json`
-* write the signature of the revocation json document to a file named `${revoked file name}.revocation.signatures.json`
-* write the signers file active at the time of the revocation to a file named `${revoked file name}.revocation.signers.json`
+* write the signature of the revocation json document to a file named `${revoked file name}.revocation.json.signatures.json`
+* write the signers file active at the time of the revocation to a file named `${revoked file name}.revocation.json.signers.json`
 * move the revoked file's `.signatures.json` file to add the suffix `.revoked`.
 
 As these operations are not atomically applied, the client should check the presence and validity of a revocation, even if the aggregate signature
 `.signatures.json` file is still present and valid.
 
-The `.revocation.signatures.json` file is structured like this:
+The `.revocation.json.signatures.json` file is structured like this:
 
 ```
 {
