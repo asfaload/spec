@@ -451,8 +451,8 @@ usually followed when updating the `asfaload.signers/index.json` file.
 
 * 0 The downloader tool first checks if the file was revoked, and considers the file not revoked if any of these steps fails:
   * download the `.revocation.json` file
-  * download the revocation file's signature
-  * get the signers file that was valid at the time of the revocation (`revocation.signers.json`).
+  * download the revocation file's signature (`${revoked file name}.revocation.json.signatures.json`),
+  * get the signers file that was valid at the time of the revocation (`revocation.json.signers.json`).
   * validate the signature of the revocation document.
   * validate that the signer had the right to revoke at the revocation time. If both checks pass, stop downloading. Although this creates an opportunity to DoS the system,
     we don't wait to check that the file we download has the same digest because:
