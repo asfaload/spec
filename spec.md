@@ -61,14 +61,10 @@ the validation of the chain of updates to the signers file.
 ```
 {
   "version": 1,
-  // We keep a trace of the first signers file published by the project.
-  "initial_version": {
-    // Permalink to the file. We cannot use the file from head, in case it is deleted (that's ok) or updated (shouldn't be done)
-    "permalink": "https://raw.githubusercontent.com/asfaload/asfald/13e1a1cae656e8d4d04ec55fa33e802f560b6b5d/asfaload.initial_signers.json",
-    // If the file is copied to multiple locations, these can be listed here
-    "mirrors" : [
-    ]
-  }
+  // timestamp at which the file was generated. Is part of the content signed so cannot be
+  // updated.
+  // ISO8601 formatted UTC date and time
+  "timestamp": "2025-11-27T14:32:05Z",
   // ---------------------------------------------------------------------------------------------
   // These are the artifact signers accepted and their required threshold
   // Note this is an array and the threshold of each object in the array
@@ -124,6 +120,12 @@ enforced though (If the threshold for a master keys section is more than 1, how 
 which of the awaiting signatures will be provided and which keys will stay unused?), and is a question of policy and good practice
 Master keys are also distinct from artifact signers, i.e. an artifact key cannot be a master key.
 
+The timestamp can help in consistency checks (entries in history should have
+growing timestamps, the timestamp of a signers file in history should be
+earlier than its obsoleted at field, ...) and avoid replays risks, where an old
+file is somehow injected as a new one (without the timestamp, the signatures of
+the old version would still be valid, here we don't accept a new version with a
+smaller timestamp than the current one.)
 
 
 # Signing the signers file
