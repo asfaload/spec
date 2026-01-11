@@ -77,7 +77,7 @@ While collecting signatures, the new signatures are added in `asfaload.signers.p
 The next step is then to activate this new signers file. The current files (`asfaload.signers/index.json` and `asfaload.signers/index.json.signatures.json`) are added in the file `asfaload.signers.history.json` and `asfaload.signers` is deleted, and the pending directory `asfaload.signers.pending` is renamed dropping the `.pending` suffix, effectively replacing the previous signers files. Previous signers can also be found by looking at the git history if needed.
 
 > [!WARNING]
-> On linux such an operation is not atomic. The backend would need to block request while the rename takes place.
+> On linux such an operation is not atomic. The backend would need to block requests while the rename takes place.
 
 ```mermaid
 sequenceDiagram
@@ -104,7 +104,7 @@ sequenceDiagram
 
 #### 4.1.1 Initial Signers
 
-We start by only working with Github, but aim to support other publishing platforms, including self-hosted solutions. For Github, the initial signers file is published in the root of the code repository, which is distinct from releases location. That's why for every publication platforms, we define the root location, where the initial signers file can be found, and the releases location, where files to be downloaded can be found.
+We start by only working with Github, but aim to support other publishing platforms, including self-hosted solutions. For Github, the initial signers file is published in the root of the code repository, which is distinct from releases location. That's why for every publication platform, we define the root location, where the initial signers file can be found, and the releases location, where files to be downloaded can be found.
 
 ##### GitHub
 
@@ -212,7 +212,7 @@ Admin keys are used for the following operations:
 
 * Changes to `asfaload.signers/index.json` admin and artifact signers config, including threshold.
 
-Admin keys can be used multiple times. They can also be used to sign artifacts, at the condition they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers/index.json` artifact signer cannot sign an artifact.
+Admin keys can be used multiple times. They can also be used to sign artifacts, on the condition they are explicitly listed as artifact signers. An admin key not listed as `asfaload.signers/index.json` artifact signer cannot sign an artifact.
 
 If no admin group is configured, it is equal to the artifact signers group.
 
@@ -222,13 +222,6 @@ Those keys are used for:
 
 * artifact signing.
 
-#### 4.2.2 Signers Modifications
-
-A new version of the file `asfaload.signers/index.json` is sent to our backend, signed by one of the current signers. The new file is copied to `asfaload.signers.pending/index.json`, and a file `index.json.signatures.json.pending` is created in that same directory.
-
-While collecting signatures, the new signatures are added in `asfaload.signers.pending/index.json.signatures.json.pending` and committed to the mirror. As soon as the update is signed as required (see Section 4.3), the file `asfaload.signers.pending/index.json.signatures.json.pending` is renamed to `asfaload.signers.pending/index.json.signatures.json`. That is, the signature is marked as complete.
-
-The next step is then to activate this new signers file. The current files (`asfaload.signers/index.json` and `asfaload.signers/index.json.signatures.json`) are added in the file `asfaload.signers.history.json` and `asfaload.signers` is deleted, and the pending directory `asfaload.signers.pending` is renamed dropping the `.pending` suffix, effectively replacing the previous signers files. Previous signers can also be found by looking at the git history if needed.
 
 ##### Adding the Previous Signers and Signatures to the History
 
@@ -237,8 +230,8 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
 ```
   {
     // ISO8601 formatted UTC date and time
-    "obsoleted_at": "2025-02-27T08:48:44Z"
-    "signers_file" : { ... content of signers file ....}
+    "obsoleted_at": "2025-02-27T08:48:44Z",
+    "signers_file" : { ... content of signers file ....},
     "signatures" : { ... content of signatures file ...}
   }
 ```
@@ -380,21 +373,21 @@ flowchart TD
     A[File to sign] --> B{File path check}
     B -->|Named 'index.json' and<br/>in 'asfaload.signers.pending'| C[Signers Signing Rules]
     B -->|All other cases| D[Artifact Signing Rules]
-    
+
     C --> E{Initialization phase?}
     E -->|Yes| F[No signers file exists]
     F --> G[Collect ALL signatures<br/>from ALL groups]
-    
+
     E -->|No - Update| H[Find signers file<br/>by traversing directories]
     H --> I[Apply signature collection rules]
-    
+
     D --> J[Find signers file<br/>by traversing directories]
     J --> K[Collect ARTIFACT signer<br/>signatures only]
-    
+
     G --> L[Complete when ALL<br/>groups provide signatures]
     I --> M[Complete when ALL<br/>conditions met]
     K --> N[Complete when threshold<br/>requirements met]
-    
+
     subgraph Completeness Check
     L
     M
@@ -531,11 +524,11 @@ flowchart TD
     A[Start Download] --> B{Check for revocation?}
     B -->|Revocation check fails any step| C[Consider not revoked - continue]
     B -->|Revocation check passes all steps| D[STOP - File revoked]
-    
+
     C --> E[Download .signers.json]
     E --> F[Download asfaload.index.json]
     F --> G[Download .signatures.json]
-    
+
     G --> H{For each group}
     H --> I[Extract threshold]
     I --> J[Initialize valid signature count = 0]
@@ -549,7 +542,7 @@ flowchart TD
     Q -->|No| O
     Q -->|Yes| R[Increment valid signature count]
     R --> O
-    
+
     O --> S{Last signer in group?}
     S -->|No| K
     S -->|Yes| T{Count >= threshold?}
@@ -557,7 +550,7 @@ flowchart TD
     T -->|Yes| V{Last group?}
     V -->|No| H
     V -->|Yes| W[Download actual file]
-    
+
     W --> X[Compute file checksum]
     X --> Y{Checksum matches<br/>asfaload.index.json<br/>and platform?}
     Y -->|No| Z[STOP - Checksum mismatch]
@@ -576,22 +569,22 @@ flowchart TD
 
 * **Step 1**: The downloader tool downloads the file's signers file on the mirror (`asfaload.index.json.signers.json`), so it identifies the current signers on the mirror in the release directory.
 
-* **Step 3**: The downloader downloads the file `asfaload.index.json`.
+* **Step 2**: The downloader downloads the file `asfaload.index.json`.
 
-* **Step 4**: The downloader downloads the file `asfaload.index.json.signatures.json`.
+* **Step 3**: The downloader downloads the file `asfaload.index.json.signatures.json`.
 
-* **Step 5**: For each group:
-  * **Step 5a**: Extracts the threshold of the group and iterate over the signers listed in the group.
-  * **Step 5b**: The downloader initialises its valid signature count to 0.
-  * **Step 5c**: For each signer, it extracts the public key, and looks for it in `asfaload.index.json.signatures.json`.
-  * **Step 5d**: As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
-    * **Step 5d.1**: It computes the sha512 of the file `asfaload.index.json`
-    * **Step 5d.2**: If the signature is valid for the sha512 computer, it increases the group's valid signatures count by 1.
-  * **Step 5e**: If the signature count is equal to the threshold, the signature is complete for this group and we stop iterating over signers in this group and go to the next group
-  * **Step 5f**: If after going over the last signer of the group the signature count is lower than the threshold, stop here and report an incomplete signature.
+* **Step 4**: For each group:
+  * **Step 4a**: Extracts the threshold of the group and iterate over the signers listed in the group.
+  * **Step 4b**: The downloader initialises its valid signature count to 0.
+  * **Step 4c**: For each signer, it extracts the public key, and looks for it in `asfaload.index.json.signatures.json`.
+  * **Step 4d**: As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
+    * **Step 4d.1**: It computes the sha512 of the file `asfaload.index.json`
+    * **Step 4d.2**: If the signature is valid for the sha512 computed, it increases the group's valid signatures count by 1.
+  * **Step 4e**: If the signature count is equal to the threshold, the signature is complete for this group and we stop iterating over signers in this group and go to the next group
+  * **Step 4f**: If after going over the last signer of the group the signature count is lower than the threshold, stop here and report an incomplete signature.
 
-* **Step 6**: The file to be downloaded is now effectively downloaded
+* **Step 5**: The file to be downloaded is now effectively downloaded
 
-* **Step 7**: Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
+* **Step 6**: Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
 
-* **Step 8**: The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
+* **Step 7**: The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
