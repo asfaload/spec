@@ -68,7 +68,7 @@ stateDiagram-v2
 
 ### 3.3 Signers File Management Workflow
 
-The signers file (`asfaload.signers/index.json`) undergoes initialization and updates. The initial signers file is published by the project on their publishing platform, then copied to the Asfaload where it must be signed by all keys it mentions before becoming active. Subsequent updates follow a similar collection process, with specific signature requirements.
+The signers file (`asfaload.signers/index.json`) undergoes initialization and updates. The initial signers file is published by the project on their publishing platform, then copied to the Asfaload mirror where it must be signed by all keys it mentions before becoming active. Subsequent updates follow a similar collection process, with specific signature requirements.
 
 For each update, a new version of the signers file is sent to the Asfaload backend. The new file is copied to `asfaload.signers.pending/index.json`, and a file `index.json.signatures.json.pending` is created in that same directory.
 
@@ -178,15 +178,8 @@ Before the initial signers file is made active, it has itself to be signed by al
 
 Each signer provides its signature, and it is immediately added to the `asfaload.signers.pending/index.json.signatures.json.pending` file and committed to the mirror. When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the `.pending` suffix. At that time, the new signers file is ready to be made active.
 
-If there is no existing signers file, the directory `asfaload.signers.pending` is renamed to `asfaload.signers`, making it active. If a signers file needs to be replaced, the signers file (`asfaload.signers/index.json`) and signatures file (`asfaload.signers/index.json.signatures.json`) are appended to the file `asfaload.signers.history.json` (sibling of the directory `asfaload.signers`) by adding an object of this form to the json array in the history file under the key `entries`:
+If there is no existing signers file, the directory `asfaload.signers.pending` is renamed to `asfaload.signers`, making it active. If a signers file needs to be replaced, the signers file (`asfaload.signers/index.json`) and signatures file (`asfaload.signers/index.json.signatures.json`) are appended to the file `asfaload.signers.history.json` (sibling of the directory `asfaload.signers`) as described later in this document in `Adding the Previous Signers and Signatures to the History`.
 
-```
-{
-    deprecated_at: $timestamp
-    signers: $content of asfaload.signers/index.json to be replaced
-    signatures: $content of asfaload.signers/index.json.signatures to be replaced.
-}
-```
 
 When the previous signers data has been added to the history file, the directory `asfaload.signers.pending` can be renamed to `asfaload.signers` to replace the previous version.
 
@@ -223,7 +216,7 @@ Those keys are used for:
 * artifact signing.
 
 
-##### Adding the Previous Signers and Signatures to the History
+#### 4.2.2 Adding the Previous Signers and Signatures to the History
 
 Here is how the format of an entry in the array stored in the file `asfaload.signers.history.json`:
 
@@ -499,7 +492,7 @@ For an m-of-n account, the worst situation is to have m-1 key compromised, and n
 
 At the other end of the spectrum, if all lost keys are amongst the compromised keys, we are still safe. We have m-1 keys compromised, and n-m keys lost. If n-m>m-1, it means we have lost access to all compromised keys in addition to some non-compromised keys. All accessible keys remaining are not compromised and can be safely used to update the signers list.
 
-We can illustrate this with a 3-of-8. Let's say we have the keys labeled `A` `B` `C` `D` `E` `F` `G` `H`. We have 3-1 = 2 compromised keys (let's say A B, which we mark with *), and 8-3 = 5 keys lost (which we mark with x), of which 2 are compromised: `Ax*` `Bx*` `C*` `D*` `E*` `F` `G` `H`
+We can illustrate this with a 3-of-8. Let's say we have the keys labeled `A` `B` `C` `D` `E` `F` `G` `H`. We have 3-1 = 2 compromised keys (let's say A B, which we mark with *), and 8-3 = 5 keys lost (which we mark with x), of which 2 are compromised: `Ax*` `Bx*` `Cx` `Dx` `Ex` `F` `G` `H`
 
 If n-m < m-1, it means we have lost less keys than the number of compromised keys. For example, in a 3-of-4, we have 3-1 = 2 (compromises handled), and 4-3=1 (key loss handled). Let's say we have the 4 keys labels `A`, `B`, `C`, and `D` and `A` and `B` are compromised (we mark them with a `*`). As stated earlier, in this case all keys lost are amongst the compromised keys. So let's say `A` is lost (we mark it with `x`).
 
@@ -570,8 +563,8 @@ flowchart TD
 
 * **Step 3**: The downloader downloads the file `asfaload.index.json.signatures.json`.
 
- * **Step 4**: Extract the threshold of the **artifact_signers** group and verify signatures:
-  * **Step 4a**: Extracts the threshold of the artifact_signers group and iterate over the signers listed in that group.
+ * **Step 4**: Verify signatures of the **artifact_signers** group:
+  * **Step 4a**: Extracts the threshold of the artifact_signers group
   * **Step 4b**: The downloader initialises its valid signature count to 0.
   * **Step 4c**: For each signer, it extracts the public key, and looks for it in `asfaload.index.json.signatures.json`.
   * **Step 4d**: As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
