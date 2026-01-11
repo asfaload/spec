@@ -529,33 +529,30 @@ flowchart TD
     E --> F[Download asfaload.index.json]
     F --> G[Download .signatures.json]
 
-    G --> H{For each group}
-    H --> I[Extract threshold]
-    I --> J[Initialize valid signature count = 0]
-    J --> K{For each signer}
-    K --> L[Extract public key]
-    L --> M[Look for signature in .signatures.json]
-    M --> N{Signature found?}
-    N -->|No| O[Continue next signer]
-    N -->|Yes| P[Validate signature]
-    P --> Q{Signature valid?}
-    Q -->|No| O
-    Q -->|Yes| R[Increment valid signature count]
-    R --> O
+    G --> H[Extract artifact_signers group threshold]
+    H --> I[Initialize valid signature count = 0]
+    I --> J{For each signer<br/>in artifact_signers group}
+    J --> K[Extract public key]
+    K --> L[Look for signature in .signatures.json]
+    L --> M{Signature found?}
+    M -->|No| N[Continue next signer]
+    M -->|Yes| O[Validate signature]
+    O --> P{Signature valid?}
+    P -->|No| N
+    P -->|Yes| Q[Increment valid signature count]
+    Q --> N
 
-    O --> S{Last signer in group?}
-    S -->|No| K
-    S -->|Yes| T{Count >= threshold?}
-    T -->|No| U[STOP - Incomplete signature]
-    T -->|Yes| V{Last group?}
-    V -->|No| H
-    V -->|Yes| W[Download actual file]
+    N --> R{Last signer in<br/>artifact_signers?}
+    R -->|No| J
+    R -->|Yes| S{Count >= threshold?}
+    S -->|No| T[STOP - Incomplete signature]
+    S -->|Yes| U[Download actual file]
 
-    W --> X[Compute file checksum]
-    X --> Y{Checksum matches<br/>asfaload.index.json<br/>and platform?}
-    Y -->|No| Z[STOP - Checksum mismatch]
-    Y -->|Yes| AA[Save file at requested location]
-    AA --> AB[Done]
+    U --> V[Compute file checksum]
+    V --> W{Checksum matches<br/>asfaload.index.json<br/>and platform?}
+    W -->|No| X[STOP - Checksum mismatch]
+    W -->|Yes| Y[Save file at requested location]
+    Y --> Z[Done]
 ```
 
 * **Step 0**: The downloader tool first checks if the file was revoked, and considers the file not revoked if any of these steps fails:
@@ -573,15 +570,17 @@ flowchart TD
 
 * **Step 3**: The downloader downloads the file `asfaload.index.json.signatures.json`.
 
-* **Step 4**: For each group:
-  * **Step 4a**: Extracts the threshold of the group and iterate over the signers listed in the group.
+ * **Step 4**: Extract the threshold of the **artifact_signers** group and verify signatures:
+  * **Step 4a**: Extracts the threshold of the artifact_signers group and iterate over the signers listed in that group.
   * **Step 4b**: The downloader initialises its valid signature count to 0.
   * **Step 4c**: For each signer, it extracts the public key, and looks for it in `asfaload.index.json.signatures.json`.
   * **Step 4d**: As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
     * **Step 4d.1**: It computes the sha512 of the file `asfaload.index.json`
     * **Step 4d.2**: If the signature is valid for the sha512 computed, it increases the group's valid signatures count by 1.
-  * **Step 4e**: If the signature count is equal to the threshold, the signature is complete for this group and we stop iterating over signers in this group and go to the next group
-  * **Step 4f**: If after going over the last signer of the group the signature count is lower than the threshold, stop here and report an incomplete signature.
+  * **Step 4e**: If after going over the last signer of the artifact_signers group the signature count is lower than the threshold, stop here and report an incomplete signature.
+
+> [!NOTE]
+> The signers file json format supports the recursive definition of subgroups in each of the `artifact_signers`, `admin` and `master` groups. This is not implemented yet and still needs to be refined
 
 * **Step 5**: The file to be downloaded is now effectively downloaded
 
