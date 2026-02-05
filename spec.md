@@ -543,6 +543,59 @@ Even though the number of occurrence of these events should be small, we need to
 
 Using master keys to sign a new `asfaload.signers/index.json` file bypass the normal procedure usually followed when updating the `asfaload.signers/index.json` file.
 
+### 5.5 Backend compromises
+
+In this section we analyse the consequences of our backend being compromised and the countermeasures we can take.
+
+#### 5.5.1 Overwriting the signers file
+
+An attacker gaining access to our backend server can try to replace a signers
+file of a project with their own signers file.
+
+If it is an **existing project already registered with asfaload**:
+In that case the attacker has to replace the whole signers file history in the
+Git repo. This can be detected and mitigated if by using a clone of the repo that
+only accepts to pull commits that are validated against some rules. These rules are:
+* Only accept to pull commits that add to the history file.
+
+If it is a **project that is not registered with asfaload**, it is harder to detect.
+It can be detected if we register where the initial signers file was
+retrieved from. The Git clone would only accept to pull a commit
+registering a project if it can find the initial signers file itself.
+#### 5.5.2 Adding a signers file in an intermediate directory
+
+When looking for a signers file, our backend travels up the directory hierarchy
+from the file that is signed to the root of the Git repository.
+If an attacker adds a signers file in a directory between the signed file and the
+legit signers file, it can interfere with the signatures verification of the
+clients.
+
+As it makes no sense for a signers file to be present in an intermediate directory,
+the git mirror can validate commits it pulls and error out if an additional signers file
+is present.
+
+#### 5.5.3 Backend mirror
+
+The git repo of our backend should be mirrored to read-only static http servers that
+can be used by clients to retrieve signers files, index files and signatures.
+For increased security the clients should not contact the backend directly.
+This is not implemented yet, as locating a signers file from a release artifact url
+is not possible for a static http server, and is only possible on the backend.
+
+Of course, the mirror itself can be compromised, but it should be a minimal
+static http server with no access to it. The server fetches commits from the
+backend and validates them. In case of problems, it reports it for
+investigation. During that case, the mirror does not update. It is an urgent
+operation concern to investigate and fix the situation, but it is better to
+have a non-progressing mirror than one advertising malicious content.
+
+Having multiple mirrors is also a mitigating factor, helping to detect if a
+mirror was compromised. The client can choose a random mirror to retrieve data,
+and validate the data against other mirror(s). This slows down validation, but
+can be interesting for users with higher security requirements.
+
+**TODO** Implement backend mirror
+
 ## 6. Downloading a File
 
 The following procedure describes how a downloader tool verifies the authenticity of a file before accepting it.
