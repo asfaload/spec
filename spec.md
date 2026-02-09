@@ -143,9 +143,22 @@ We start by only working with Github, but aim to support other publishing platfo
 
 ##### GitHub
 
-Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under the `main` or `master` branch.
+Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
 
-This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json`. Once the file has been copied to the mirror, it can be deleted by a new commit, but it MUST be left as is in the git history. This is needed to allow the validation of the chain of updates to the signers file.
+This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
+
+The metadata collected alongside the signers file consists of:
+
+* the type of origin: downloaded from a forge like github, or submitted to the backend with the Asfaload CLI
+* For CLI submitted signers files:
+  * the submitter's public key
+  * the time it was submitted
+* For files downloaded from a forge:
+  * the kind of forge (Github, Gitlab,...)
+  * the url
+  * the time it was downloaded
+
+This information is not signed, but committed to the backend at the same time as the signers file.
 
 ```
 {
