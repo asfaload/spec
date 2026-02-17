@@ -218,6 +218,18 @@ This information is not signed, but committed to the backend at the same time as
         ],
         "threshold": 2
     }
+  ],
+  // The revocation keys are optional. But if present, are used for revocation of signed files.
+  // When revocation keys are not explicitly defined, they fall back to admin_keys, then to artifact_signers.
+  "revocation_keys" : [
+    {
+        "signers": [
+            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
+        ],
+        "threshold": 2
+    }
   ]
 }
 ```
@@ -330,13 +342,13 @@ stateDiagram-v2
 
 #### 4.2.4 Revocation
 
-If a file published and signed appears to be malicious, the publishing project can revoke the signatures. As revocation is in most cases an emergency intervention, only one signature from the most privileged group defined in the current signers file is required. The groups in order from the most privileged to the least are:
+If a file published and signed appears to be malicious, the publishing project can revoke the signatures. As revocation is in most cases an emergency intervention, a dedicated group `revocation_keys` is defined in the signers file. It is optional though, and cascades through the following hierarchy of groups until a defined group is found:
 
-* master keys
-* admin keys
-* artifact signers
+* revocation_keys
+* admin_keys
+* artifact_signers
 
-This approach seems to strike the right balance between risking a Denial of Service if it is too easy to revoke a file, and keeping a file to be revoked available for too long.
+The `master_keys` are not used in this case, to limit their use to emergency signers files reset.
 
 The revocation process always looks at the current signers. This means that if the file `asfaload.signers/index.json` has been updated since the file to be revoked was signed, the signers config used for revocation will not be the same as the one used at the time of the signing.
 
@@ -360,12 +372,19 @@ The json document has this format (`//` commented lines are not part of the json
 
 When the revocation request is received, the revoked file is located thanks to the path information given in the request. First we check the signature of the revocation json. If it is valid, we then validate if the signer is authorized to revoke a file. If either of these checks fail, stop here.
 
-Then it is checked if the file has a complete aggregate signature. If not, stop here (or prevent aggregate signature completion? see note below). If the file to be revoked has a complete aggregate signature, compute its digest and compare it to the value in the json document transmitted. If it doesn't match, stop here.
+Then it is checked if the file has a complete aggregate signature. If not, the revocation process can continue. If the revocation process completes while the aggregate signature of the file is still incomplete, it will stop the signature process of the file (so the file will never have a complete signature).
 
-If it matches, the revocation request is legitimate, and we apply it:
+We then compute the file to be revoked's digest and compare it to the value in the json document transmitted. If it doesn't match, stop here.
 
-* write the revocation json document to a file named `${revoked file name}.revocation.json`
-* write the signature of the revocation json document to a file named `${revoked file name}.revocation.json.signatures.json`
+If it matches, the revocation request is legitimate, apply it:
+
+* write the revocation json document to a file named `${revoked file name}.revocation.json.pending`.
+* write the signature of the revocation json document to a file named `${revoked file name}.revocation.json.signatures.json.pending`.
+
+When the revocation's aggregate signature is complete, we activate the revocation:
+
+* remove the `.pending` suffix from the revocation file (`${revoked file name}.revocation.json.pending`)
+* remove the `.pending` suffix from the signatures file (`${revoked file name}.revocation.json.signatures.json.pending`)
 * write the signers file active at the time of the revocation to a file named `${revoked file name}.revocation.json.signers.json`
 * move the revoked file's `.signatures.json` file to add the suffix `.revoked`.
 
@@ -374,8 +393,6 @@ As these operations are not atomically applied, the client should check the pres
 The `.revocation.json.signatures.json` file is structured like other signatures file.
 
 
-> [!NOTE]
-> if we receive a revocation for a file without a complete aggregate signature, do we want to prevent the aggregate signature to be completed in the future?
 
 ```mermaid
 sequenceDiagram
@@ -392,20 +409,24 @@ sequenceDiagram
         alt Unauthorized signer
             Mirror->>Admin: Reject request
         else Authorized signer
-            Mirror->>Mirror: Check file has complete signature
-            alt Incomplete signature
+            Mirror->>Mirror: Compare file digest
+            alt Digest mismatch
                 Mirror->>Admin: Reject request
-            else Complete signature
-                Mirror->>Mirror: Compare file digest
-                alt Digest mismatch
-                    Mirror->>Admin: Reject request
-                else Digest matches
-                    Mirror->>Mirror: Create .revocation.json
-                    Mirror->>Mirror: Create .revocation.json.signatures.json
-                    Mirror->>Mirror: Save current signers to .revocation.json.signers.json
-                    Mirror->>Mirror: Move .signatures.json → .signatures.json.revoked
-                    Mirror->>Admin: Revocation complete
+            else Digest matches
+                Mirror->>Mirror: Create .revocation.json.pending
+                Mirror->>Mirror: Create .revocation.json.signatures.json.pending
+                alt Revocation signature incomplete
+                    loop Until revocation threshold met
+                        Admin->>Mirror: Additional revocation signature
+                        Mirror->>Mirror: Add to .revocation.json.signatures.json.pending
+                    end
                 end
+                Mirror->>Mirror: Rename .revocation.json.pending to .revocation.json
+                Mirror->>Mirror: Rename .revocation.json.signatures.json.pending to .revocation.json.signatures.json
+                Mirror->>Mirror: Save current signers to .revocation.json.signers.json
+                Mirror->>Mirror: Move .signatures.json → .signatures.json.revoked
+                Note over Mirror: If file had incomplete aggregate signature,<br/>stop its signature process
+                Mirror->>Admin: Revocation complete
             end
         end
     end
@@ -415,12 +436,15 @@ sequenceDiagram
 
 As signers files contain different groups with distinct purposes, we have to determine rules defining which signers groups apply to which circumstances.
 
-If the file being signed is named `index.json` and is stored in a directory named `asfaload.signers.pending`, the signers signing rules apply. Otherwise, artifact signing rules apply.
+If the file being signed is named `index.json` and is stored in a directory named `asfaload.signers.pending`, the signers signing rules apply.
+If the file being signed's name has the suffix `.revocation.json.pending`, the revocation signing rules apply.
+Otherwise, artifact signing rules apply.
 
 ```mermaid
 flowchart TD
     A[File to sign] --> B{File path check}
     B -->|Named 'index.json' and<br/>in 'asfaload.signers.pending'| C[Signers Signing Rules]
+    B -->|Named with suffix<br/>'.revocation.json.pending'| R[Revocation Signing Rules]
     B -->|All other cases| D[Artifact Signing Rules]
 
     C --> E{Initialization phase?}
@@ -433,14 +457,19 @@ flowchart TD
     D --> J[Find signers file<br/>by traversing directories]
     J --> K[Collect ARTIFACT signer<br/>signatures only]
 
+    R --> S[Find signers file<br/>by traversing directories]
+    S --> T[Collect REVOCATION group<br/>signatures only]
+
     G --> L[Complete when ALL<br/>groups provide signatures]
     I --> M[Complete when ALL<br/>conditions met]
-    K --> N[Complete when threshold<br/>requirements met]
+    K --> N[Complete when ARTIFACT<br/>threshold requirements met]
+    T --> U[Complete when REVOCATION<br/>threshold requirements met]
 
     subgraph Completeness Check
     L
     M
     N
+    U
     end
 ```
 
@@ -521,6 +550,30 @@ This leads to these conditions having to be met:
 
 > [!NOTE]
 > The initial signers file process is a special case of these conditions, where there is no current config, and where all signers are new, which lets us condense everything in one requirement (all signers need to sign).
+
+#### 4.3.3 Revocation Signing Rules
+
+##### Signers File Identification
+
+The applicable signers file is found by traversing parent directories from the revoked file's location, looking for the current `asfaload.signers/index.json`, similarly to the artifact signing rules. Note that the release-specific copy (`.signers.json`) is not used; revocation always uses the current active signers file, as stated in section 4.2.4.
+
+If no signers file is found, the revocation request is rejected.
+
+##### Signature Collection Rule
+
+The revocation signers are the members of the group identified like this:
+
+* If the `revocation_keys` group is defined, use it for revocation.
+* If no `revocation_keys` group is present, the `admin_keys` group is used.
+* If the latter is not defined, the `artifact_signers` group is used.
+
+The `master_keys` group is not used in this process.
+
+When receiving an individual signature, check if its author is a member of the identified revocation group. If it is, collect the signature; otherwise, ignore it.
+
+##### Completeness Rules
+
+The revocation aggregate signature is complete when the threshold requirements of the applicable revocation group are met.
 
 ## 5. Security Analysis
 
