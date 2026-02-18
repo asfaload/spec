@@ -372,23 +372,23 @@ The json document has this format (`//` commented lines are not part of the json
 
 When the revocation request is received, the revoked file is located thanks to the path information given in the request. First we check the signature of the revocation json. If it is valid, we then validate if the signer is authorized to revoke a file. If either of these checks fail, stop here.
 
-Then it is checked if the file has a complete aggregate signature. If not, the revocation process can continue. If the revocation process completes while the aggregate signature of the file is still incomplete, it will stop the signature process of the file (so the file will never have a complete signature).
 
 We then compute the file to be revoked's digest and compare it to the value in the json document transmitted. If it doesn't match, stop here.
 
 If it matches, the revocation request is legitimate, apply it:
 
 * write the revocation json document to a file named `${revoked file name}.revocation.json.pending`.
-* write the signature of the revocation json document to a file named `${revoked file name}.revocation.json.signatures.json.pending`.
+* write the signature of the revocation json document to a file named `${revoked file name}.revocation.json.pending.signatures.json.pending`.
 
 When the revocation's aggregate signature is complete, we activate the revocation:
 
 * remove the `.pending` suffix from the revocation file (`${revoked file name}.revocation.json.pending`)
-* remove the `.pending` suffix from the signatures file (`${revoked file name}.revocation.json.signatures.json.pending`)
+* remove the `.pending` suffix from the signatures file and additionaly rename it to match the activated revocation file (`${revoked file name}.revocation.json.signatures.json.pending`)
 * write the signers file active at the time of the revocation to a file named `${revoked file name}.revocation.json.signers.json`
 * move the revoked file's `.signatures.json` file to add the suffix `.revoked`.
 
 As these operations are not atomically applied, the client should check the presence and validity of a revocation, even if the aggregate signature `.signatures.json` file is still present and valid.
+If the revocation process completes while the aggregate signature of the file is still incomplete, it will stop the signature process of the file (so the file will never have a complete signature).
 
 The `.revocation.json.signatures.json` file is structured like other signatures file.
 
