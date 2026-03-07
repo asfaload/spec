@@ -196,7 +196,11 @@ This information is not signed, but committed to the backend at the same time as
   // ---------------------------------------------------------------------------------------------
   // Following is optional.
   // Master keys, use for reinitialisation of the `index.json` file.
-  // If no master is present, it falls back to admin keys. If those are absent, it falls back to artifact signers.
+  // Master keys must be explicitly configured. If not present, emergency reinitialisation
+  // is not available and signers file updates can only be performed through the normal
+  // admin procedure. This is by design: master keys serve as an emergency recovery
+  // mechanism and should be stored offline with minimal exposure, which is incompatible
+  // with falling back to daily-use admin or artifact signer keys.
   "master_keys" : [
     {
         "signers": [
@@ -284,7 +288,7 @@ Master keys are used for:
 * Changes in master signers configuration
 
 Master keys are encouraged to be one-time use keys. Master keys signing the new `asfaload.signers/index.json` file should ideally not be present in it.
-Master keys are optional, and default to admin keys if absent.
+Master keys are optional. If not configured, emergency reinitialisation is not available and signers file changes can only be made through the normal admin update procedure. There is no fallback to admin or artifact signer keys: master keys are an emergency recovery mechanism intended to be stored offline with minimal exposure, which is fundamentally incompatible with the higher-exposure keys used for day-to-day operations.
 
 ##### Admin Keys
 
