@@ -90,7 +90,7 @@ The format of the signatures file is
 
 ```
 {
-  "<base64-encoded-pubkey>": "base64 signature",
+  "<format-prefixed-base64-encoded-pubkey>": "base64 signature",
    ....
 
 }
@@ -101,7 +101,8 @@ The requirements to be met to have the aggregate signature considered as complet
 
 The applicable signers file is copied alongside the signed file and named as the signed file but with the suffix `.signers.json` when the aggregate signature is completed. We need to take a copy because the applicable signers file could change between signing and verification. A new, more specific, signers file could be added in a path closer to the signed file, which would then be used for verification instead of the original. Although locating the applicable signers file using its history would still be possible, it would be cumbersome.
 
-The content of pending signatures file is a json object where each key is the base64 encoding of the public key of the signer, and the associated value is the base64 encoding of the signature. Once the required signatures, as defined in the nearest `asfaload.signers/index.json` file, are collected, the `.pending` suffix is dropped and the complete signature is made available for use. New signatures can only be added to `index.json.signatures.json.pending`, not to `index.json.signatures.json`.
+The content of pending signatures file is a json object where each key is the format-prefixed-base64 encoding of the public key of the signer, and the associated value is the base64 encoding of the signature. Once the required signatures, as defined in the nearest `asfaload.signers/index.json` file, are collected, the `.pending` suffix is dropped and the complete signature is made available for use. New signatures can only be added to `index.json.signatures.json.pending`, not to `index.json.signatures.json`.
+The public key's format prefix is currently `minisign` or `ed25519`.
 
 ```mermaid
 stateDiagram-v2
@@ -184,9 +185,9 @@ This information is not signed, but committed to the backend at the same time as
   "artifact_signers" : [
     {
       "signers" : [
-        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"}  },
-        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"}  },
-        { "kind": "key", "data": { "format": "minisign", "pubkey": "RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"}  }
+        { "kind": "key", "data": { "pubkey": "minisign:RWTsbRMhBdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"}  },
+        { "kind": "key", "data": { "pubkey": "minisign:RWTUManqs3axpHvnTGZVvmaIOOz0jaV+SAKax8uxsWHFkcnACqzL1xyv"}  },
+        { "kind": "key", "data": { "pubkey": "minisign:RWSNbF6ZeLYJLBOKm8a2QbbSb3U+K4ag1YJENgvRXfKEC6RqICqYF+NE"}  }
       ],
       // how many signatures are required to have
       // this requirement fulfilled
@@ -204,9 +205,9 @@ This information is not signed, but committed to the backend at the same time as
   "master_keys" : [
     {
         "signers": [
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
+            { "kind": "key", "data": { "pubkey": "minisign:RM4ST3R1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "data": { "pubkey": "minisign:RM4ST3R285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "data": { "pubkey": "minisign:RM4ST3R3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
         ],
         "threshold": 2
     }
@@ -216,9 +217,9 @@ This information is not signed, but committed to the backend at the same time as
   "admin_keys" : [
     {
         "signers": [
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
         ],
         "threshold": 2
     }
@@ -228,9 +229,9 @@ This information is not signed, but committed to the backend at the same time as
   "revocation_keys" : [
     {
         "signers": [
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
-            { "kind": "key", "data": { "format": "minisign", "pubkey": "R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NJ1BdOyL8hSYo/Z4nRD6O5OvrydjXWyvd8W7QOTftBOKSSn3PH3"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NL285887D5Ag2MdVVIr0nqM7LRLBQpA3PRiYARbtIr0H96TgN63"} },
+            { "kind": "key", "data": { "pubkey": "minisign:R4DM1NN3USBDoNYvpmoQFvCwzIqouUBYesr89gxK3juKxnFNa5apmB9M"} },
         ],
         "threshold": 2
     }
