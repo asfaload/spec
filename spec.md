@@ -26,7 +26,7 @@ This section defines key terms used throughout this specification.
 
 ### 3.1 File Publishing Workflow
 
-The Asfaload release signing scheme is based on an `index.asfaload.json` file containing the release artifacts' checksums (sha256 or sha512).
+The Asfaload release signing scheme is based on an `asfaload.index.json` file containing the release artifacts' checksums (sha256 or sha512).
 This file is created by the Asfaload backend in one of three ways:
 *   By querying the release host's API (e.g., the GitHub REST API) for checksums.
 *   By using checksums files published in the release.
@@ -284,11 +284,15 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
   {
     // ISO8601 formatted UTC date and time
     "obsoleted_at": "2025-02-27T08:48:44Z",
-    "signers_file" : { ... content of signers file ....},
+    // The signers file content is base64-encoded to prevent JSON formatters
+    // from altering whitespace, which would invalidate its signatures.
+    "signers_file" : "eyJ2ZXJzaW9uIjoxLC...base64-encoded signers file content...==",
     "signatures" : { ... content of signatures file ...},
     "metadata" : { ... content of metadata file ...}
   }
 ```
+
+The `signers_file` field contains the raw JSON content of the signers file, base64-encoded. This encoding ensures that the exact bytes that were signed are preserved, preventing JSON formatters or serializers from altering whitespace or key ordering, which would invalidate the signatures.
 
 Such an entry is **appended** to the array in the file `asfaload.signers.history.json`, and the entries of the array are expected to be sorted chronologically.
 
