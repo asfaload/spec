@@ -162,14 +162,26 @@ This file will be copied to the Asfaload mirror in the root's subdirectory `asfa
 
 The metadata collected alongside the signers file consists of:
 
-* the type of origin: downloaded from a forge like github, or submitted to the backend with the Asfaload CLI
-* For CLI submitted signers files:
-  * the submitter's public key
-  * the time it was submitted
-* For files downloaded from a forge:
+* the type of origin: downloaded from a forge like github, a self-hosted fileserver, ...
   * the kind of forge (Github, Gitlab,...)
   * the url
   * the time it was downloaded
+
+The `metadata.json` file has the following format:
+
+```
+{
+  "data": {
+    "Forge": {
+      "kind": "Github",
+      "url": "https://github.com/user/repo/blob/main/asfaload.initial_signers.json",
+      "retrieved_at": "2025-11-27T14:32:05Z"
+    }
+  }
+}
+```
+
+The `kind` field can be `Github`, `Gitlab`, or `FileServer`. The `retrieved_at` field is an ISO8601 formatted UTC date and time.
 
 This information is not signed, but committed to the backend at the same time as the signers file.
 
@@ -273,7 +285,8 @@ Here is how the format of an entry in the array stored in the file `asfaload.sig
     // ISO8601 formatted UTC date and time
     "obsoleted_at": "2025-02-27T08:48:44Z",
     "signers_file" : { ... content of signers file ....},
-    "signatures" : { ... content of signatures file ...}
+    "signatures" : { ... content of signatures file ...},
+    "metadata" : { ... content of metadata file ...}
   }
 ```
 
