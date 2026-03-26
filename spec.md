@@ -26,7 +26,7 @@ This section defines key terms used throughout this specification.
 
 ### 3.1 File Publishing Workflow
 
-The Asfaload release signing scheme is based on an `index.asfaload.json` file containing the release artifacts' checksums (sha256 or sha512).
+The Asfaload release signing scheme is based on an `asfaload.index.json` file containing the release artifacts' checksums (sha256 or sha512).
 This file is created by the Asfaload backend in one of three ways:
 *   By querying the release host's API (e.g., the GitHub REST API) for checksums.
 *   By using checksums files published in the release.
