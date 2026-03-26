@@ -19,6 +19,8 @@ This section defines key terms used throughout this specification.
 - **Publishing Platform**: The platform where original files are published (e.g., GitHub releases)
 - **Revocation**: The action of invalidating a previously signed file due to malicious content or other emergency
 - **Signers File**: A JSON file (`index.json`) defining groups of keys and their respective thresholds required to complete an aggregate signature
+- **Backend Path**: The path to which a URL is mapped on disk on the backend. It includes the protocol scheme and the port as path elements mapping. If the port is not explicitly present, it uses the protocol's default port. As an example, it maps `https://github.com/asfaload/asfald` to `https/github.com/443/asfaload/asfald`
+- **Download URI**: The base URI from which release artifacts can be downloaded, which may differ from the release page URI. For example Github uses different URI structures for the release web page (eg https://github.com/asfaload/asfald/releases/tag/v0.9.0) and the base URI to download artefacts (eg https://github.com/asfaload/asfald/releases/download/v0.9.0/).
 
 ## 3. Workflows
 
@@ -28,9 +30,9 @@ The Asfaload release signing scheme is based on an `index.asfaload.json` file co
 This file is created by the Asfaload backend in one of three ways:
 *   By querying the release host's API (e.g., the GitHub REST API) for checksums.
 *   By using checksums files published in the release.
-*   By downloading the artifacts files and computing the sha256.
+*   By downloading the artifacts files and computing the sha256 (optional, only available for on-premise installations).
 
-The resulting `index.asfaload.json` is stored in a git repository maintained by Asfaload. The path in the mirror corresponds to the download URI of the release, without the protocol scheme.
+The resulting `index.asfaload.json` is stored in a git repository maintained by Asfaload. The path in the git repo is the backend path of the download URI of the release.
 It is this `index.asfaload.json` file that will be signed by publishers.
 
 Here is an example of such an index file:
@@ -249,7 +251,7 @@ The timestamp can help in consistency checks (entries in history should have gro
 
 #### 4.1.2 Signing the Signers File
 
-Before the initial signers file is made active, it has itself to be signed by all keys it mentions. As long as it is not signed, the signers file is stored in `asfaload.signers.pending/index.json`. For Github releases, the signers file will be stored in `${project_root}`, which is `/github.com/${user}/${repo}` on the mirror.
+Before the initial signers file is made active, it has itself to be signed by all keys it mentions. As long as it is not signed, the signers file is stored in `asfaload.signers.pending/index.json`. For Github releases, the signers file will be stored in `${project_root}`, which is `https/github.com/443/${user}/${repo}` on the mirror.
 
 Each signer provides its signature, and it is immediately added to the `asfaload.signers.pending/index.json.signatures.json.pending` file and committed to the mirror. When all signers (as required for a new signers file) have provided their respective signature, the file is renamed by the backend to remove the `.pending` suffix. At that time, the new signers file is ready to be made active.
 
