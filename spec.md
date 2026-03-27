@@ -164,7 +164,8 @@ The metadata collected alongside the signers file consists of:
 
 * the type of origin: downloaded from a forge like github, a self-hosted fileserver, ...
   * the kind of forge (Github, Gitlab,...)
-  * the url
+  * the url provided by the user
+  * the url effectively retrieved by the system (on forges, the user can provide the html-view url, and the system translates it to the raw file url).
   * the time it was downloaded
 
 The `metadata.json` file has the following format:
@@ -175,6 +176,7 @@ The `metadata.json` file has the following format:
     "Forge": {
       "kind": "Github",
       "url": "https://github.com/user/repo/blob/main/asfaload.initial_signers.json",
+      "retrieval_url": "https://github.com/user/repo/refs/heads/main/asfaload.initial_signers.json",
       "retrieved_at": "2025-11-27T14:32:05Z"
     }
   }
