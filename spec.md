@@ -348,12 +348,12 @@ sequenceDiagram
     Repo->>Repo: Generate checksums
     Mirror->>Repo: Fetch checksums
     Mirror->>Mirror: Create asfaload.index.json
-    Mirror->>Mirror: Copy signers file to .signers.json
     Mirror->>Signers: Request signatures
     loop Until threshold met
         Signers->>Mirror: Provide signature
         Mirror->>Mirror: Add to .signatures.json.pending
     end
+    Mirror->>Mirror: Copy signers file to .signers.json
     Mirror->>Mirror: Rename to .signatures.json (complete)
 ```
 
