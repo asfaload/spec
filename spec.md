@@ -703,6 +703,8 @@ can be interesting for users with higher security requirements.
 ## 6. Downloading a File
 
 The following procedure describes how a downloader tool verifies the authenticity of a file before accepting it.
+By default, it does not check the full history of signers update up to the trust anchor. This might change before the stable version of this spec is published.
+A full signers history check additionally verifies that all signers file updates are cryptographically signed as required, and it checks the initial signers file is present at its origin URL (trust anchor).
 
 ```mermaid
 flowchart TD
