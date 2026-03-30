@@ -708,41 +708,47 @@ A full signers history check additionally verifies that all signers file updates
 
 ```mermaid
 flowchart TD
-    A[Start Download] --> B{Check for revocation?}
-    B -->|Revocation check fails any step| C[Consider not revoked - continue]
-    B -->|Revocation signature valid| D[STOP - File revoked]
-
-    C --> E[Download .signers.json]
+    A[Start Download] --> E[Download .signers.json]
     E --> F[Download asfaload.index.json]
-    F --> G[Download .signatures.json]
+    F --> G{Download .signatures.json}
 
-    G --> H[Extract artifact_signers group threshold]
-    H --> I[Initialize valid signature count = 0]
-    I --> J{For each signer<br/>in artifact_signers group}
-    J --> K[Extract public key]
-    K --> L[Look for signature in .signatures.json]
-    L --> M{Signature found?}
-    M -->|No| N[Continue next signer]
-    M -->|Yes| O[Validate signature]
-    O --> P{Signature valid?}
-    P -->|No| N
-    P -->|Yes| Q[Increment valid signature count]
-    Q --> N
+    G -->|HTTP 404| REV{Check for revocation}
+    REV -->|Revocation check fails any step| REVFAIL[STOP - Signatures missing,<br/>not revoked either]
+    REV -->|Revocation signature valid| D[STOP - File revoked]
 
-    N --> R{Last signer in<br/>artifact_signers?}
-    R -->|No| J
-    R -->|Yes| S{Count >= threshold?}
-    S -->|No| T[STOP - Incomplete signature]
-    S -->|Yes| U[Download actual file]
+    G -->|Success| H[Compute sha512 of<br/>asfaload.index.json]
 
-    U --> V[Compute file checksum]
-    V --> W{Checksum matches<br/>asfaload.index.json<br/>and platform?}
+    H --> I[Parse individual signatures<br/>from .signatures.json]
+    I --> J{For each parsed<br/>signature}
+    J --> K[Verify signature against<br/>index file sha512]
+    K --> L{Signature valid?}
+    L -->|No| M[Increment invalid count]
+    L -->|Yes| N[Store in valid signatures map]
+    M --> O{More signatures?}
+    N --> O
+    O -->|Yes| J
+    O -->|No| S[Check artifact_signers<br/>groups and thresholds]
+    S --> T{All groups<br/>satisfied?}
+    T -->|No| U[STOP - Incomplete signature]
+    T -->|Yes| V[Extract expected file hash<br/>from asfaload.index.json]
+
+    V --> PA[Download actual file<br/>with incremental hashing]
+    V --> PB[Verify signers chain<br/>- only if full_check -]
+
+    PA --> JOIN[Wait for both to complete]
+    PB --> JOIN
+
+    JOIN --> W{File checksum matches<br/>asfaload.index.json?}
     W -->|No| X[STOP - Checksum mismatch]
     W -->|Yes| Y[Save file at requested location]
     Y --> Z[Done]
 ```
 
-* **Step 0**: The downloader tool first checks if the file was revoked, and considers the file not revoked if any of these steps fails:
+* **Step 1**: download the file's signers file on the mirror (`asfaload.index.json.signers.json`) to identify who signed the release
+
+* **Step 2**: download the file's `asfaload.index.json` from the mirror.
+
+* **Step 3**: download the file `asfaload.index.json.signatures.json`. If this file is not found (HTTP 404), check whether the file was revoked:
   * download the `.revocation.json` file
   * download the revocation file's signature (`${revoked file name}.revocation.json.signatures.json`),
   * get the (copy of the) signers file that was valid at the time of the revocation (`revocation.json.signers.json`).
@@ -751,26 +757,18 @@ flowchart TD
     * or it has the same digest of the revoked file, and we delete the downloaded file due to revocation
     * or it has another digest, and something strange is going on. We don't know if the revocation is buggy, or if the file we downloaded was somehow injected in the system to replace the revoked file.
 
-* **Step 1**: The downloader tool downloads the file's signers file on the mirror (`asfaload.index.json.signers.json`), so it identifies the current signers on the mirror in the release directory.
+* **Step 4**: compute the sha512 of the `asfaload.index.json` file content. This hash is the data that signatures are verified against.
 
-* **Step 2**: The downloader downloads the file `asfaload.index.json`.
-
-* **Step 3**: The downloader downloads the file `asfaload.index.json.signatures.json`.
-
- * **Step 4**: Verify signatures of the **artifact_signers** group:
-  * **Step 4a**: Extracts the threshold of the artifact_signers group
-  * **Step 4b**: The downloader initialises its valid signature count to 0.
-  * **Step 4c**: For each signer, it extracts the public key, and looks for it in `asfaload.index.json.signatures.json`.
-  * **Step 4d**: As the downloader tool knows the public key, the signature, and the `asfaload.index.json` file, it can validate the signature:
-    * **Step 4d.1**: It computes the sha512 of the file `asfaload.index.json`
-    * **Step 4d.2**: If the signature is valid for the sha512 computed, it increases the group's valid signatures count by 1.
-  * **Step 4e**: If after going over the last signer of the artifact_signers group the signature count is lower than the threshold, stop here and report an incomplete signature.
+* **Step 5**: Verify signatures of the **artifact_signers** group:
+  * **Step 5a**: parse all individual (public key, signature) pairs from `asfaload.index.json.signatures.json`.
+  * **Step 5b**: For each parsed signature, verify the signature against the index file sha512 computed in step 4. Valid signatures are collected; invalid ones are counted separately.
+  * **Step 5c**: Once all signatures are processed, check whether the valid signatures satisfy all artifact_signers group thresholds. If not, stop and report error.
 
 > [!NOTE]
 > The signers file json format supports the recursive definition of subgroups in each of the `artifact_signers`, `admin` and `master` groups. This is not implemented yet and still needs to be refined
 
-* **Step 5**: The file to be downloaded is now effectively downloaded
+* **Step 6**: The downloader extracts the expected file hash from `asfaload.index.json`.
 
-* **Step 6**: Once downloaded, the file's checksum is computed. The algorithm chosen by default is the best one found for the file (sha512 > sha256)
+* **Step 7**: The file is downloaded with incremental hashing (the checksum is computed as data is streamed). If full_check mode is enabled, the signers chain validation runs in parallel with the file download.
 
-* **Step 7**: The checksum computed is compared to the checksums found in the `asfaload.index.json` and with the checksums file on the publishing platform. If all correspond, the file is saved at the requested location.
+* **Step 8**: The computed checksum is compared to the expected hash from `asfaload.index.json`. If they match, the file is saved at the requested location.
