@@ -478,9 +478,9 @@ flowchart TD
     F --> G[Collect ALL signatures<br/>from ALL groups]
 
     E -->|No - Update| H[Find signers file<br/>by traversing directories]
-    H --> I[Apply signature collection rules]
+    H --> I[Apply signers update signature collection rules]
 
-    D --> J[Find signers file<br/>by traversing directories]
+    D --> J[Find <i>current</i> signers file<br/>by traversing directories]
     J --> K[Collect ARTIFACT signer<br/>signatures only]
 
     R --> S[Find signers file<br/>by traversing directories]
@@ -708,7 +708,7 @@ The following procedure describes how a downloader tool verifies the authenticit
 flowchart TD
     A[Start Download] --> B{Check for revocation?}
     B -->|Revocation check fails any step| C[Consider not revoked - continue]
-    B -->|Revocation check passes all steps| D[STOP - File revoked]
+    B -->|Revocation signature valid| D[STOP - File revoked]
 
     C --> E[Download .signers.json]
     E --> F[Download asfaload.index.json]
