@@ -156,7 +156,7 @@ We start by only working with Github, but aim to support other publishing platfo
 
 ##### GitHub
 
-Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
+Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
 
 This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
 
