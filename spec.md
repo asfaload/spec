@@ -178,7 +178,10 @@ The `metadata.json` file has the following format:
     "Forge": {
       "kind": "Github",
       "url": "https://github.com/user/repo/blob/main/asfaload.initial_signers.json",
-      "retrieval_url": "https://github.com/user/repo/refs/heads/main/asfaload.initial_signers.json",
+      "verified_content": {
+        "retrieval_url": "https://github.com/user/repo/refs/heads/main/asfaload.initial_signers.json",
+        "content_hash": "${sha256_of_retrieved_file_content}"
+      },
       "retrieved_at": "2025-11-27T14:32:05Z"
     }
   }
@@ -186,6 +189,7 @@ The `metadata.json` file has the following format:
 ```
 
 The `kind` field can be `Github`, `Gitlab`, or `FileServer`. The `retrieved_at` field is an ISO8601 formatted UTC date and time.
+The `content_hash` ensures the metadata is linked to the correct file content.
 
 This information is signed following the same requirements as the signers file it describes.
 
