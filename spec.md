@@ -160,7 +160,7 @@ We start by only working with Github, but aim to support other publishing platfo
 
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
 
-This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
+This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `index.json.metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
 
 The metadata collected alongside the signers file consists of:
 
@@ -170,7 +170,7 @@ The metadata collected alongside the signers file consists of:
   * the url effectively retrieved by the system (on forges, the user can provide the html-view url, and the system translates it to the raw file url).
   * the time it was downloaded
 
-The `metadata.json` file has the following format:
+The `index.json.metadata.json` file has the following format:
 
 ```
 {
