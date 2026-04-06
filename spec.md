@@ -118,6 +118,8 @@ stateDiagram-v2
 
 The signers file (`asfaload.signers/index.json`) undergoes initialization and updates. The initial signers file is published by the project on their publishing platform, then copied to the Asfaload mirror where it must be signed by all keys it mentions before becoming active. Subsequent updates follow a similar collection process, with specific signature completeness requirements.
 
+A metadata file is created alongside the signers file in the Asfaload mirror. It is named as the file it describes, but with a `.metadata.json` suffix, eg `asfaload.signers/index.json.metadata.json`. This metadata file's signature requirements are identical to those of the signers file it is describing.
+
 For each update, a new version of the signers file is sent to the Asfaload backend. At that time the directory `asfaload.signers.pending` is created alongside the existing `asfaload.signers` directory it will replace. The new file is copied to `asfaload.signers.pending/index.json`, and a file `index.json.signatures.json.pending` is created in that same directory.
 
 While collecting signatures, the new signatures are added in `asfaload.signers.pending/index.json.signatures.json.pending` and committed to the mirror. As soon as the update is signed as required (see Section 4.3), the file `asfaload.signers.pending/index.json.signatures.json.pending` is renamed to `asfaload.signers.pending/index.json.signatures.json`. That is, the signature is marked as complete.
@@ -185,7 +187,7 @@ The `metadata.json` file has the following format:
 
 The `kind` field can be `Github`, `Gitlab`, or `FileServer`. The `retrieved_at` field is an ISO8601 formatted UTC date and time.
 
-This information is not signed, but committed to the backend at the same time as the signers file.
+This information is signed following the same requirements as the signers file it describes.
 
 ```
 {
