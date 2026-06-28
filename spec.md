@@ -118,6 +118,8 @@ stateDiagram-v2
 
 The signers file (`asfaload.signers/index.json`) undergoes initialization and updates. The initial signers file is published by the project on their publishing platform, then copied to the Asfaload mirror where it must be signed by all keys it mentions before becoming active. Subsequent updates follow a similar collection process, with specific signature completeness requirements.
 
+A metadata file is created alongside the signers file in the Asfaload mirror. It is named as the file it describes, but with a `.metadata.json` suffix, eg `asfaload.signers/index.json.metadata.json`. This metadata file's signature requirements are identical to those of the signers file it is describing.
+
 For each update, a new version of the signers file is sent to the Asfaload backend. At that time the directory `asfaload.signers.pending` is created alongside the existing `asfaload.signers` directory it will replace. The new file is copied to `asfaload.signers.pending/index.json`, and a file `index.json.signatures.json.pending` is created in that same directory.
 
 While collecting signatures, the new signatures are added in `asfaload.signers.pending/index.json.signatures.json.pending` and committed to the mirror. As soon as the update is signed as required (see Section 4.3), the file `asfaload.signers.pending/index.json.signatures.json.pending` is renamed to `asfaload.signers.pending/index.json.signatures.json`. That is, the signature is marked as complete.
@@ -156,9 +158,9 @@ We start by only working with Github, but aim to support other publishing platfo
 
 ##### GitHub
 
-Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` at the root of the git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
+Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
 
-This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
+This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `index.json.metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
 
 The metadata collected alongside the signers file consists of:
 
@@ -168,7 +170,7 @@ The metadata collected alongside the signers file consists of:
   * the url effectively retrieved by the system (on forges, the user can provide the html-view url, and the system translates it to the raw file url).
   * the time it was downloaded
 
-The `metadata.json` file has the following format:
+The `index.json.metadata.json` file has the following format:
 
 ```
 {
@@ -176,7 +178,10 @@ The `metadata.json` file has the following format:
     "Forge": {
       "kind": "Github",
       "url": "https://github.com/user/repo/blob/main/asfaload.initial_signers.json",
-      "retrieval_url": "https://github.com/user/repo/refs/heads/main/asfaload.initial_signers.json",
+      "verified_content": {
+        "retrieval_url": "https://github.com/user/repo/refs/heads/main/asfaload.initial_signers.json",
+        "content_hash": "${sha256_of_retrieved_file_content}"
+      },
       "retrieved_at": "2025-11-27T14:32:05Z"
     }
   }
@@ -184,8 +189,9 @@ The `metadata.json` file has the following format:
 ```
 
 The `kind` field can be `Github`, `Gitlab`, or `FileServer`. The `retrieved_at` field is an ISO8601 formatted UTC date and time.
+The `content_hash` ensures the metadata is linked to the correct file content.
 
-This information is not signed, but committed to the backend at the same time as the signers file.
+This information is signed following the same requirements as the signers file it describes.
 
 ```
 {
