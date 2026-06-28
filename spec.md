@@ -161,7 +161,7 @@ We start by only working with Github, but aim to support other publishing platfo
 Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We encourage to create a dedicated, empty branch, named `asfaload_signers`, to store only the signers files of the project. This can be done with
 
 ```
-git switch -c --orphan asfaload_signers
+git switch --orphan asfaload_signers
 ```
 The signers file is then committed on this branch and pushed to github. This branch should then be locked to prevent any update (only the initial signers file is stored on github as a trust anchor, all updates occur in the Asfaload backend).
 
