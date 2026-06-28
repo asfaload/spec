@@ -154,11 +154,18 @@ sequenceDiagram
 
 #### 4.1.1 Initial Signers
 
-We start by only working with Github, but aim to support other publishing platforms, including self-hosted solutions. For Github, the initial signers file is published a branch of the code repository, which is distinct from releases location. That's why for every publication platform, we define the root location, where the initial signers file can be found, and the releases location, where files to be downloaded can be found.
+We start by only working with Github, but aim to support other publishing platforms, including self-hosted solutions. For Github, the initial signers file is published on a branch of the code repository, which is distinct from releases location. That's why for every publication platform, we define the root location, where the initial signers file can be found, and the releases location, where files to be downloaded can be found.
 
 ##### GitHub
 
-Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We suppose that only developers controlling the project can add a branch.
+Before a project starts to sign releases with Asfaload, it has to communicate the signers and threshold to the Asfaload mirror. This is done by adding a file `asfaload.initial_signers.json` in the project's git repo under an arbitrary branch that is communicated to the Asfaload backend. We encourage to create a dedicated, empty branch, named `asfaload_signers`, to store only the signers files of the project. This can be done with
+
+```
+git switch -c --orphan asfaload_signers
+```
+The signers file is then committed on this branch and pushed to github. This branch should then be locked to prevent any update (only the initial signers file is stored on github as a trust anchor, all updates occur in the Asfaload backend).
+
+This approach supposes that only developers controlling the project can add a branch.
 
 This file will be copied to the Asfaload mirror in the root's subdirectory `asfaload.signers.pending` of the project under the name `index.json` alongside a `index.json.metadata.json` file. Once the file has been copied to the mirror, the copy on Github is only used when verifying the whole chain of updates. If this file is not available anymore, the initial signers file cannot be linked back to the Github repository, so it is advised to keep it available.
 
